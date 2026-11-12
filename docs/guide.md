@@ -20,6 +20,7 @@ Scrum work waits on people: the PO writes AC from a blank page, dev rebuild cont
 /scrum-spec split <flow>        a whole flow → story map + one folder per story
 /scrum-spec ac <work>           story, rules, acceptance criteria, questions
 /scrum-spec handoff <work>      test steps for the tester on day one
+/scrum-spec board [<flow>]      render and open an interactive visual board in browser
 /scrum-spec                     the next step of the work in this conversation
 /scrum-spec help                short usage
 ```
@@ -55,6 +56,14 @@ python3 -I <skill_dir>/scripts/check.py scrum-spec/
 
 - **Exit 1:** missing first-line marker, a broken table row, an approval or decision without a person and date or given by an AI, a reference to a D that does not exist, a path in Source that does not exist (add `(new)` for files to create)
 - **Reported:** approval status, open and blocking questions, answers not yet recorded, AC/EC with no test step
+
+## Visualise specs as a FigJam board
+
+```bash
+python3 -I <skill_dir>/scripts/board.py scrum-spec/ --open
+```
+
+Renders a standalone `board.html` with two-finger trackpad panning, pinch-to-zoom, and role-based view filters (PO, Dev, QA) with complete specs readable directly on the canvas without opening markdown files.
 
 ## Measure whether it helps
 

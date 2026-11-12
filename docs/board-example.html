@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story Map &amp; Sprint Board · scrum-spec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #f8f9fa;
+      --dot-color: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      
+      --sticky-yellow: #fefce8;
+      --sticky-yellow-border: #fef08a;
+      --sticky-blue: #eff6ff;
+      --sticky-blue-border: #bfdbfe;
+      --sticky-pink: #fff1f2;
+      --sticky-pink-border: #fecdd3;
+      --sticky-gray: #f8fafc;
+      --sticky-gray-border: #e2e8f0;
+
+      --section-border: #cbd5e1;
+      --section-bg: rgba(255, 255, 255, 0.85);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-canvas);
+      background-image: radial-gradient(var(--dot-color) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      background-attachment: local;
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    #zoom-wrapper {
+      transform-origin: 0 0;
+      min-width: 2400px;
+      min-height: 1600px;
+      padding: 110px 120px 240px 120px;
+      display: inline-flex;
+      flex-direction: column;
+      gap: 36px;
+      will-change: transform;
+    }
+
+    .top-bar {
+      position: fixed;
+      top: 16px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .brand-pill {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 8px 18px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tag-flow {
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .meta-time {
+      font-size: 11px;
+      color: #64748b;
+      margin-left: 4px;
+    }
+
+    .center-controls {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 4px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .role-btn {
+      background: none;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .role-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .role-btn.active {
+      background: #0f172a;
+      color: white;
+    }
+
+    .zoom-controls {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 4px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .zoom-btn {
+      background: none;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #475569;
+      transition: all 0.15s;
+    }
+
+    .zoom-btn:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .zoom-level {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 0 6px;
+      min-width: 44px;
+      text-align: center;
+      color: #475569;
+    }
+
+    .fig-section {
+      background: var(--section-bg);
+      border: 2px dashed var(--section-border);
+      border-radius: 28px;
+      padding: 28px 32px 34px 32px;
+      position: relative;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.02);
+    }
+
+    .section-label {
+      position: absolute;
+      top: -15px;
+      left: 32px;
+      background: #1e293b;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .steps-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .step-card {
+      background: var(--sticky-blue);
+      border: 1.5px solid var(--sticky-blue-border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      width: 250px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transform: rotate(-0.5deg);
+    }
+
+    .step-num {
+      font-family: 'Caveat', cursive;
+      font-size: 22px;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    .step-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+
+    .step-actor {
+      font-size: 11px;
+      color: #3b82f6;
+      font-weight: 600;
+      background: rgba(255,255,255,0.85);
+      padding: 3px 8px;
+      border-radius: 6px;
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+
+    .step-arrow {
+      font-size: 22px;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(540px, 1fr)) 440px;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .status-stamp {
+      font-family: 'Caveat', cursive;
+      font-size: 17px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .status-stamp.approved {
+      background: #dcfce7;
+      color: #15803d;
+      border: 2px dashed #16a34a;
+      transform: rotate(-1.5deg);
+    }
+
+    .status-stamp.waiting {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 2px dashed #dc2626;
+      transform: rotate(2deg);
+    }
+
+    .spec-card {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .spec-card.card-approved {
+      border-top: 6px solid #22c55e;
+    }
+
+    .spec-card.card-waiting {
+      border-top: 6px solid #ef4444;
+    }
+
+    .card-top {
+      padding: 20px 22px 16px 22px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-head-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-id-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-ticket {
+      background: #1e293b;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .card-slug {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .card-steps-tag {
+      font-size: 11px;
+      font-weight: 600;
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+
+    .story-statement {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #1e293b;
+      background: #fefce8;
+      border-left: 4px solid #eab308;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .card-content {
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .spec-block {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .spec-block-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scope-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12.5px;
+      background: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .scope-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.45;
+    }
+
+    .tag-scope-in {
+      background: #dcfce7;
+      color: #15803d;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .tag-scope-out {
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .rules-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rules-list li {
+      font-size: 12.5px;
+      line-height: 1.45;
+      padding: 6px 10px;
+      background: #f1f5f9;
+      border-radius: 6px;
+      color: #334155;
+    }
+
+    .ac-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .ac-table th {
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 600;
+      text-align: left;
+      padding: 7px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 11px;
+    }
+
+    .ac-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      line-height: 1.4;
+      vertical-align: top;
+      color: #334155;
+    }
+
+    .ac-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge-ac {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 11px;
+      color: #2563eb;
+    }
+
+    .badge-ec {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 11px;
+      color: #d97706;
+    }
+
+    .qa-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12.5px;
+      color: #166534;
+    }
+
+    .qa-title {
+      font-weight: 700;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #15803d;
+    }
+
+    .qa-row {
+      line-height: 1.45;
+    }
+
+    .qa-alert {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #991b1b;
+      font-size: 11.5px;
+      margin-top: 4px;
+    }
+
+    .card-footer {
+      padding: 12px 22px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .code-path {
+      font-family: 'JetBrains Mono', monospace;
+      background: #e2e8f0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      color: #334155;
+    }
+
+    .sticky-note {
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .sticky-note.pink {
+      background: var(--sticky-pink);
+      border: 1.5px solid var(--sticky-pink-border);
+      color: #881337;
+      transform: rotate(-1deg);
+    }
+
+    .sticky-note.gray {
+      background: var(--sticky-gray);
+      border: 1.5px solid var(--sticky-gray-border);
+      color: #334155;
+    }
+
+    .sticky-note.yellow-mini {
+      background: #fef9c3;
+      border: 1.5px solid #fef08a;
+      color: #713f12;
+      transform: rotate(1deg);
+    }
+
+    .note-id {
+      font-family: 'Caveat', cursive;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .tag-blocker {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #f87171;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tag-later {
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    body.filter-po .spec-block.section-qa,
+    body.filter-po .card-footer {
+      opacity: 0.25;
+    }
+
+    body.filter-dev .spec-block.section-qa {
+      opacity: 0.25;
+    }
+
+    body.filter-tester .spec-block.section-rules,
+    body.filter-tester .scope-box,
+    body.filter-tester .card-footer {
+      opacity: 0.25;
+    }
+
+    .helper-bar {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.9);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 9999px;
+      font-size: 12px;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="brand-pill">
+      <span style="font-size: 20px;">📋</span>
+      <span class="brand-title">Story Map <span class="tag-flow">scrum-spec</span></span>
+      <span class="meta-time">Generated 2026-11-12 09:20 UTC</span>
+    </div>
+
+    <div class="center-controls">
+      <button class="role-btn active" onclick="setRole('all', this)">All Specs</button>
+      <button class="role-btn" onclick="setRole('po', this)">PO View</button>
+      <button class="role-btn" onclick="setRole('dev', this)">Dev View</button>
+      <button class="role-btn" onclick="setRole('tester', this)">QA / Tester View</button>
+    </div>
+
+    <div class="zoom-controls">
+      <button class="zoom-btn" id="zoomOut" title="Zoom Out">-</button>
+      <span class="zoom-level" id="zoomLevel">100%</span>
+      <button class="zoom-btn" id="zoomIn" title="Zoom In">+</button>
+      <button class="zoom-btn" id="zoomReset" title="Reset (100%)">↺</button>
+    </div>
+  </div>
+
+  <div id="zoom-wrapper">
+    
+
+    <div class="fig-section">
+      <span class="section-label">📌 Sprint Backlog · Complete Stories & Spec</span>
+      <div class="board-grid">
+        
+        <div class="spec-card card-waiting">
+          <div class="card-top">
+            <div class="card-head-row">
+              <div class="card-id-block">
+                <span class="badge-ticket">** RB-12</span>
+                <span class="card-slug">rb-12-book-room</span>
+              </div>
+              
+            </div>
+
+            <div class="card-head-row">
+              <span class="status-stamp waiting">** ✅ Alex · 2026-11-03 (incl. D1)</span>
+              <span style="font-size: 11px; color: #ca8a04; font-weight: 600;">⏳ IN REFINEMENT</span>
+            </div>
+
+            <div class="story-statement">
+              ** As a staff member I want to book a free meeting room myself so that I do not wait for admin to book it
+            </div>
+          </div>
+
+          <div class="card-content">
+            
+            <div class="spec-block">
+              <div class="spec-block-title">🎯 Scope</div>
+              <div class="scope-box">
+                
+              <div class="scope-row">
+                <span class="tag-scope-in">IN SCOPE</span>
+                <span>Pick the date, start time, end time and room, then press &quot;Book&quot; · Only admin can book the large meeting room</span>
+              </div>
+            
+                
+              <div class="scope-row">
+                <span class="tag-scope-out">OUT OF SCOPE</span>
+                <span>Cancelling a booking (RB-13) · Email notifications</span>
+              </div>
+            
+              </div>
+            </div>
+            
+            
+            <div class="spec-block section-rules">
+              <div class="spec-block-title">📜 Business Rules</div>
+              <ul class="rules-list">
+                <li>**Permissions**</li><li>Only admin sees and books the large meeting room</li><li>**Form**</li><li>Date, start time, end time and room are required</li><li>A booking lasts at most 4 hours (D1)</li>
+              </ul>
+            </div>
+            
+            
+            <div class="spec-block">
+              <div class="spec-block-title">🎯 Acceptance Criteria (5 Criteria)</div>
+              <table class="ac-table">
+                <thead>
+                  <tr>
+                    <th style="width: 44px;">#</th>
+                    <th>Given</th>
+                    <th>When</th>
+                    <th>Then</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                  <tr>
+                    <td><span class="badge-ac">AC1</span></td>
+                    <td>Staff picked a date, times and a free room</td>
+                    <td>they look at the &quot;Book&quot; button</td>
+                    <td><strong>the button is enabled</strong></td>
+                  </tr>
+                
+                  <tr>
+                    <td><span class="badge-ac">AC2</span></td>
+                    <td>The form is complete</td>
+                    <td>they press &quot;Book&quot;</td>
+                    <td><strong>the booking shows in &quot;My bookings&quot;</strong></td>
+                  </tr>
+                
+                  <tr>
+                    <td><span class="badge-ec">EC1</span></td>
+                    <td>The user is not admin</td>
+                    <td>they open the room list</td>
+                    <td><strong>the large meeting room is not listed</strong></td>
+                  </tr>
+                
+                  <tr>
+                    <td><span class="badge-ec">EC2</span></td>
+                    <td>The room is booked in that slot</td>
+                    <td>they press &quot;Book&quot;</td>
+                    <td><strong>they see &quot;This room is already booked&quot;</strong></td>
+                  </tr>
+                
+                  <tr>
+                    <td><span class="badge-ec">EC3</span></td>
+                    <td>Staff pick 09:00 to 14:00</td>
+                    <td>they press &quot;Book&quot;</td>
+                    <td><strong>they see that a booking can last at most 4 hours</strong></td>
+                  </tr>
+                
+                </tbody>
+              </table>
+            </div>
+            
+            
+            <div class="spec-block section-qa">
+              <div class="spec-block-title">🧪 Tester Handoff (Test Steps)</div>
+              <div class="qa-box">
+                <div class="qa-title">👤 Test Accounts & Data</div>
+                <div class="qa-row">
+                  • <strong>Accounts:</strong> ** Admin Alex (admin) · Staff Sam (staff, no access to the large room)<br>• <strong>Prepare:</strong> ** Room 1 booked 10:00–11:00 today<br>• <strong>Do not report:</strong> ** cancelling a booking (RB-13) · email notifications
+                </div>
+                
+                <div class="qa-alert">
+                  ⚠️ <strong>Watch out:</strong> Room list — the same `listRooms` feeds other screens · check they still list rooms for admin
+                </div>
+                
+              </div>
+            </div>
+            
+          </div>
+
+          <div class="card-footer">
+            
+            <div>📂 <span class="code-path">src/booking/BookingPage.tsx</span> <span class="code-path">src/rooms/rooms.ts</span> </div>
+          </div>
+        </div>
+        
+        <div class="spec-card card-waiting">
+          <div class="card-top">
+            <div class="card-head-row">
+              <div class="card-id-block">
+                <span class="badge-ticket">** RB-13</span>
+                <span class="card-slug">rb-13-cancel-booking</span>
+              </div>
+              
+            </div>
+
+            <div class="card-head-row">
+              <span class="status-stamp waiting">** ❌ waiting for PO</span>
+              <span style="font-size: 11px; color: #dc2626; font-weight: 700;">⚠️ 1 BLOCKER QUESTION</span>
+            </div>
+
+            <div class="story-statement">
+              ** As a staff member I want to cancel my booking so that the room is free for others
+            </div>
+          </div>
+
+          <div class="card-content">
+            
+            <div class="spec-block">
+              <div class="spec-block-title">🎯 Scope</div>
+              <div class="scope-box">
+                
+              <div class="scope-row">
+                <span class="tag-scope-in">IN SCOPE</span>
+                <span>Cancel a booking from &quot;My bookings&quot;</span>
+              </div>
+            
+                
+              <div class="scope-row">
+                <span class="tag-scope-out">OUT OF SCOPE</span>
+                <span>Editing a booking</span>
+              </div>
+            
+              </div>
+            </div>
+            
+            
+            <div class="spec-block section-rules">
+              <div class="spec-block-title">📜 Business Rules</div>
+              <ul class="rules-list">
+                <li>**Permissions**</li><li>Staff cancel only their own bookings</li>
+              </ul>
+            </div>
+            
+            
+            <div class="spec-block">
+              <div class="spec-block-title">🎯 Acceptance Criteria (2 Criteria)</div>
+              <table class="ac-table">
+                <thead>
+                  <tr>
+                    <th style="width: 44px;">#</th>
+                    <th>Given</th>
+                    <th>When</th>
+                    <th>Then</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  
+                  <tr>
+                    <td><span class="badge-ac">AC1</span></td>
+                    <td>Staff have a future booking</td>
+                    <td>they press &quot;Cancel&quot; and confirm</td>
+                    <td><strong>the booking leaves &quot;My bookings&quot;</strong></td>
+                  </tr>
+                
+                  <tr>
+                    <td><span class="badge-ec">EC1</span></td>
+                    <td>The booking has already started</td>
+                    <td>they look at it</td>
+                    <td><strong>there is no &quot;Cancel&quot; button</strong></td>
+                  </tr>
+                
+                </tbody>
+              </table>
+            </div>
+            
+            
+          </div>
+
+          <div class="card-footer">
+            
+            <div>📂 <span class="code-path">src/booking/api.ts</span> </div>
+          </div>
+        </div>
+        
+        <div>
+          
+        <div class="sticky-note pink">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span class="note-id">Q2 · ** RB-12</span>
+            <span class="tag-later">later</span>
+          </div>
+          <p style="font-size: 13.5px; line-height: 1.5; font-weight: 500;">
+            "Should the &quot;Book&quot; button show a spinner while saving?"
+          </p>
+          <div style="font-size: 12px; background: rgba(255,255,255,0.7); padding: 8px 10px; border-radius: 6px;">
+            👤 <strong>Ask:</strong> UX
+            
+          </div>
+        </div>
+        
+        <div class="sticky-note pink">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span class="note-id">Q1 · ** RB-13</span>
+            <span class="tag-later">AC</span>
+          </div>
+          <p style="font-size: 13.5px; line-height: 1.5; font-weight: 500;">
+            "Can admin cancel anyone&#x27;s booking? Proposal: yes"
+          </p>
+          <div style="font-size: 12px; background: rgba(255,255,255,0.7); padding: 8px 10px; border-radius: 6px;">
+            👤 <strong>Ask:</strong> PO
+            <div style="font-size: 11px; margin-top: 4px; color: #15803d;"><strong>Answer:</strong> yes, admin can cancel any booking — Alex</div>
+          </div>
+        </div>
+        
+        <div class="sticky-note pink">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span class="note-id">Q2 · ** RB-13</span>
+            <span class="tag-blocker">🚫 BLOCKS DEV</span>
+          </div>
+          <p style="font-size: 13.5px; line-height: 1.5; font-weight: 500;">
+            "A cancel API does not exist. Proposal: `DELETE /bookings/:id`, 403 when not the owner"
+          </p>
+          <div style="font-size: 12px; background: rgba(255,255,255,0.7); padding: 8px 10px; border-radius: 6px;">
+            👤 <strong>Ask:</strong> BE
+            
+          </div>
+        </div>
+        
+        <div class="sticky-note pink">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span class="note-id">Q3 · ** RB-13</span>
+            <span class="tag-later">later</span>
+          </div>
+          <p style="font-size: 13.5px; line-height: 1.5; font-weight: 500;">
+            "Should the cancel confirmation have custom text?"
+          </p>
+          <div style="font-size: 12px; background: rgba(255,255,255,0.7); padding: 8px 10px; border-radius: 6px;">
+            👤 <strong>Ask:</strong> UX
+            
+          </div>
+        </div>
+        
+        <div class="sticky-note yellow-mini">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span class="note-id">⚡ Decisions Log</span>
+            <span style="font-size: 11px; font-weight: 700; background: #fef08a; padding: 2px 6px; border-radius: 4px;">Audited</span>
+          </div>
+          <div style="font-size: 12.5px; line-height: 1.6;">
+            • **D1** A booking lasts at most 4 hours · Alex · 2026-11-03<br>
+          </div>
+        </div>
+        
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="helper-bar">
+    <span>✨ <strong>Pinch trackpad with 2 fingers</strong> to zoom</span>
+    <span>•</span>
+    <span><strong>Two-finger scroll</strong> to pan the canvas</span>
+  </div>
+
+  <script>
+    const wrapper = document.getElementById('zoom-wrapper');
+    let currentZoom = 1.0;
+
+    function zoomAt(clientX, clientY, targetZoom) {
+      const newZoom = Math.min(Math.max(targetZoom, 0.35), 2.2);
+      if (Math.abs(newZoom - currentZoom) < 0.001) return;
+
+      const scrollX = window.scrollX || document.documentElement.scrollLeft;
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+
+      const contentX = (scrollX + clientX) / currentZoom;
+      const contentY = (scrollY + clientY) / currentZoom;
+
+      currentZoom = newZoom;
+      wrapper.style.transform = `scale(${currentZoom})`;
+      
+      const dotSize = Math.max(12, Math.round(24 * currentZoom));
+      document.body.style.backgroundSize = `${dotSize}px ${dotSize}px`;
+      document.getElementById('zoomLevel').innerText = `${Math.round(currentZoom * 100)}%`;
+
+      const newScrollX = contentX * currentZoom - clientX;
+      const newScrollY = contentY * currentZoom - clientY;
+      window.scrollTo(newScrollX, newScrollY);
+    }
+
+    window.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const factor = Math.exp(-e.deltaY * 0.012);
+        zoomAt(e.clientX, e.clientY, currentZoom * factor);
+      }
+    }, { passive: false });
+
+    let gestureStartZoom = 1.0;
+    window.addEventListener('gesturestart', (e) => {
+      e.preventDefault();
+      gestureStartZoom = currentZoom;
+    });
+
+    window.addEventListener('gesturechange', (e) => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, gestureStartZoom * e.scale);
+    });
+
+    window.addEventListener('gestureend', (e) => {
+      e.preventDefault();
+    });
+
+    function zoomButton(factor) {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      zoomAt(centerX, centerY, currentZoom * factor);
+    }
+
+    document.getElementById('zoomIn').onclick = () => zoomButton(1.2);
+    document.getElementById('zoomOut').onclick = () => zoomButton(1 / 1.2);
+    document.getElementById('zoomReset').onclick = () => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      zoomAt(centerX, centerY, 1.0);
+    };
+
+    function setRole(role, btn) {
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.body.className = '';
+      if (role !== 'all') {
+        document.body.classList.add(`filter-${role}`);
+      }
+    }
+  </script>
+</body>
+</html>

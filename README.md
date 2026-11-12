@@ -22,7 +22,7 @@ Pick **one** method. Installing both gives you the skill twice.
 
 ```bash
 # Pin a release so later changes cannot reach you unreviewed (recommended)
-npx skills add thitinan147/scrum-spec#v0.3.0
+npx skills add thitinan147/scrum-spec#v0.4.0
 
 # Or follow the default branch
 npx skills add thitinan147/scrum-spec
@@ -34,7 +34,7 @@ Add `-g` to install for all your projects instead of the current one.
 
 ```text
 # Pinned to a release (recommended)
-/plugin marketplace add thitinan147/scrum-spec#v0.3.0
+/plugin marketplace add thitinan147/scrum-spec#v0.4.0
 /plugin install scrum-spec@scrum-spec
 ```
 
@@ -45,9 +45,10 @@ You need Python 3.10+ and git. To read large PDFs exported from a board, also in
 ## Quick start
 
 ```text
-/scrum-spec ac rb-12-book-room     then paste the card's text, or a path to a PDF or image
+/scrum-spec ac rb-12-book-room       then paste the card's text, or a path to a PDF or image
 /scrum-spec handoff rb-12-book-room  once no question blocks the AC
-/scrum-spec split room-booking     optional: a whole flow → a story map and one folder per story
+/scrum-spec split room-booking       optional: a whole flow → a story map and one folder per story
+/scrum-spec board room-booking       view an interactive FigJam-style visual board in browser
 /scrum-spec help
 ```
 
@@ -58,6 +59,7 @@ The skill runs only when you type the command. It writes `scrum-spec/<work>/spec
 | `split` | `map.md`: steps, vertical-slice stories, what is not now | PO confirms stories and order |
 | `ac` | Story, Rules, Acceptance Criteria, Questions (with a short ambiguity review) | PO answers and approves AC |
 | `handoff` | Test steps, accounts, data, what not to report, risky areas | The tester starts writing tests |
+| `board` | `board.html`: standalone FigJam-style visual board | PO, Dev and QA review specs together |
 
 Headings and table columns stay in English because the checker reads them. The text follows the language of your input, so a team that writes in Thai gets its documents in Thai.
 

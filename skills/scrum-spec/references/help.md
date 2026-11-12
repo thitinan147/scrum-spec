@@ -8,6 +8,7 @@ Drafts a Scrum team's spec into one `spec.md` per story, so nobody waits on a bl
 <command> split <flow>     a whole flow → story map + one folder per story   (Refinement)
 <command> ac <work>        story, rules, acceptance criteria, questions        (Refinement)
 <command> handoff <work>   test steps for the tester, on day one of the Sprint (Planning)
+<command> board [<flow>]   open a FigJam-style visual board of your specs in browser
 <command>                  the next step of the work in this conversation
 ```
 

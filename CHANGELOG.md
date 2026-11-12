@@ -2,6 +2,14 @@
 
 Versions below 1.0 may change the document format (markers, headings, file names, config keys). Each such change is listed here. From 1.0, a format change bumps the major version and comes with upgrade notes.
 
+## 0.4.0 - visual board
+
+- New `board` command and `scripts/board.py`: renders a standalone FigJam-style visual board from `map.md` and `spec.md` documents.
+- Complete specs readable directly on the canvas without opening markdown files (User Journey steps, AC tables, Scope, Rules, QA handoff, Questions & Blockers, Decisions Log).
+- Native 2-finger trackpad panning with macOS momentum and pinch-to-zoom.
+- Role-based view filters: All Specs, PO View, Dev View, QA View.
+- Zero dependencies, Python 3.10+ standard library only.
+
 ## 0.3.0 - no tasks
 
 Breaking: the `tasks` command is removed. Breaking work into tasks is the developers' decision at Sprint Planning, so the skill now writes only what to build (`ac`) and what to test (`handoff`).

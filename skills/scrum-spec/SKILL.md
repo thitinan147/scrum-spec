@@ -5,10 +5,10 @@ license: MIT
 compatibility: Claude Code, Codex, Cursor and other Agent Skills clients. Needs git and Python 3.10+ (standard library only). poppler is optional, for large PDFs.
 metadata:
   author: Thitinan
-  version: "0.3.0"
+  version: "0.4.0"
   short-description: Draft Scrum specs from the code; the AI proposes, people decide
-argument-hint: "<help | split | ac | handoff> [<work>] [text or path of a PDF or image]"
-allowed-tools: Bash(python3 -I ${CLAUDE_SKILL_DIR}/scripts/check.py *) Bash(git rev-parse *) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git blame *) Bash(git config user.name)
+argument-hint: "<help | split | ac | handoff | board> [<work>] [text or path of a PDF or image]"
+allowed-tools: Bash(python3 -I ${CLAUDE_SKILL_DIR}/scripts/check.py *) Bash(python3 -I ${CLAUDE_SKILL_DIR}/scripts/board.py *) Bash(git rev-parse *) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git blame *) Bash(git config user.name)
 disable-model-invocation: true
 ---
 
@@ -16,7 +16,7 @@ disable-model-invocation: true
 
 Argument: `$ARGUMENTS` (if unreplaced: the text the user wrote after the command)
 
-Goal: remove waiting. The PO edits a draft instead of a blank page, dev start from AC with the code already found, the tester has test steps on day one. Write only what someone will act on; each fact lives in one place, cited elsewhere.
+Goal: remove waiting. The PO edits a draft instead of a blank page, dev start from AC with the code found, the tester has test steps on day one. Write what someone acts on; each fact lives in one place.
 
 ## Rules
 
@@ -35,15 +35,17 @@ Goal: remove waiting. The PO edits a draft instead of a blank page, dev start fr
 | `split` | [steps/split.md](steps/split.md) | `<docs_root>/<flow>/map.md`, then a `spec.md` per confirmed story |
 | `ac` | [steps/ac.md](steps/ac.md) | Story, Rules, Acceptance Criteria, Questions in `spec.md` |
 | `handoff` | [steps/handoff.md](steps/handoff.md) | Test steps in `spec.md` |
+| `board` | [scripts/board.py](scripts/board.py) | `<docs_root>/board.html` visual FigJam board |
 
 - `<command>`: `/scrum-spec`, or `/scrum-spec:scrum-spec` as a plugin
-- No command: run the next missing section's command for the work in this conversation, saying so in one line. No work either: run `check.py <docs_root>` and ask which spec to continue
+- `board`: runs `scripts/board.py <folder> --open`
+- No command: run next missing section's command for the work in chat, else run `check.py <docs_root>` and ask which spec to continue
 - Input from a PDF or image: also read [references/input.md](references/input.md)
 
 ## Where files live
 
 - `<docs_root>/<work>/spec.md` per story or ticket (`<flow>/<story>` from `split`); `<work>` is lowercase-with-dashes, ticket ID first
-- `scrum-spec/config.md` at the git root is optional. Keys, one per line, with these defaults:
+- `scrum-spec/config.md` at git root is optional, with defaults:
 
 ```
 docs_root: scrum-spec
@@ -53,7 +55,7 @@ roles: PO, Dev, QA
 
 `code_roots`: every repo to search (e.g. `., ../api`); `roles` fill the Ask column.
 
-`spec.md` starts with `<!-- scrum-spec -->` and `# <work>`, then `## Story`, `## Rules`, `## Acceptance Criteria`, `## Questions`, `## Decisions`, `## Test steps`, in this order. A `## Tasks` section from an older version stays as it is.
+`spec.md` starts with `<!-- scrum-spec -->` and `# <work>`, then `## Story`, `## Rules`, `## Acceptance Criteria`, `## Questions`, `## Decisions`, `## Test steps`. A 0.2 `## Tasks` section is kept as is.
 
 ## Workflow
 
