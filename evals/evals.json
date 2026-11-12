@@ -1,383 +1,92 @@
 [
   {
-    "skills": [
-      "scrum-spec"
-    ],
+    "skills": ["scrum-spec"],
     "query": "/scrum-spec help",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md"
-    ],
+    "files": [],
     "expected_behavior": [
-      "Reads references/help.md and shows the whole file in chat, replacing <command> with /scrum-spec and <backlog_root>, <docs_root> with docs/backlog, docs/sprint from the config",
-      "Does not run the Workflow checklist, ask questions, write or edit files, or run setup",
-      "Does not cut or summarise the help content"
+      "Shows references/help.md whole in chat with <command> as /scrum-spec and <docs_root> as scrum-spec",
+      "Asks no questions and writes no files"
     ]
   },
   {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec 1 ticket=demo-room-booking then paste the note: 'Staff book meeting rooms themselves: pick the date, time and room, attach an agenda. The Book button is disabled while the form is incomplete. Only admin can book the large meeting room · needs a new create-booking API that BE has not built yet'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md"
-    ],
+    "skills": ["scrum-spec"],
+    "query": "/scrum-spec ac rb-14-edit-booking แล้ววางโน้ต: 'พนักงานแก้เวลาการจองของตัวเองได้ ถ้ายังไม่ถึงเวลาเริ่ม ห้องที่เปลี่ยนไปต้องว่าง'",
+    "files": ["evals/files/room-booking/src/booking/api.ts", "evals/files/room-booking/src/rooms/rooms.ts"],
     "expected_behavior": [
-      "Reads the config at scrum-spec/config.md first and does not run setup",
-      "Fills every heading of the 0 · Input Template, including the 'Track' field",
-      "Proposes the large track because a new API must be agreed with BE before coding, then asks the user (not only because there is a new screen)",
-      "Fields missing from the note (Sprint, Ticket ID, Sprint Goal) are [ask: …] naming who to ask from the Roles table, not made up",
-      "Saves docs/sprint/demo-room-booking/01-input.md with the first line <!-- scrum-spec 01 · refine-intake · YYYY-MM-DD -->",
-      "Chat shows only the summary, includes 'posted on Figma', and gives the next step as 2 · /scrum-spec refine-ac"
+      "Creates scrum-spec/rb-14-edit-booking/spec.md with first line <!-- scrum-spec --> and the sections Story, Rules, Acceptance Criteria, Questions, Decisions in that order, with no Tasks or Test steps",
+      "Headings, table columns and '**approve:** ❌ waiting for PO' are in English; the story, rules, AC cells and questions are in Thai",
+      "Finds in src/booking/api.ts that there is no edit-booking API and adds a question for the API owner with Blocks 'tasks' and a one-line proposed contract, instead of inventing an endpoint as fact",
+      "Has EC rows for editing after the start time, a room that is no longer free, and someone else's booking (or a question about it)",
+      "Runs check.py, then asks at most 4 questions in the same turn, each with a (Recommended) option and 'Don't know / ask <role>'",
+      "The reply is at most 6 lines in the SKILL.md format, not the whole document"
     ]
   },
   {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec 1 ticket=demo-room-timeline then paste the note: 'Room timeline page, shows times as 1:30 PM, uses the existing booking API'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/glossary/booking.md"
-    ],
+    "skills": ["scrum-spec"],
+    "query": "/scrum-spec ac rb-13-cancel-booking",
+    "files": ["evals/files/room-booking/scrum-spec/rb-13-cancel-booking/spec.md"],
     "expected_behavior": [
-      "Proposes the small track because it uses the existing API and the scope is clear",
-      "Flags right away that the note conflicts with the rule 'Show times in 24-hour format' (demo-room-booking D3) and asks whether to change the rule or make an exception, without choosing",
-      "Puts the 'Room timeline page' row from the 'Carried over' table in Reference and says this ticket may close that row",
-      "Asks whether the row added on 2025-06-01 (open for more than 6 weeks) should be kept or removed, without removing it",
-      "Gives the next step as 2 · /scrum-spec refine-ac and shows 'small track (1/4)'"
+      "Reads the filled-in Answer of Q1 and adds '- **D1** <admin can cancel any booking> · Alex · <date>' to Decisions, replacing '(none yet)', with Alex taken from the answer text, not from git config and not an AI",
+      "Deletes the Q1 row and adds the admin rule and an AC or EC for it",
+      "Leaves the approve line '❌ waiting for PO' (it was never approved)",
+      "Does not answer Q2 or Q3 itself; Q2 stays open for BE",
+      "check.py exits 0 and reports Q2 as blocking (tasks · BE)"
     ]
   },
   {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec plan-review ticket=demo-room-booking then answer the first question with 'scope ends at frame C.4' and the others with 'don't know yet, waiting for PO'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/demo-room-booking/01-input.md",
-      "evals/files/demo-room-booking/02-ac.md"
-    ],
+    "skills": ["scrum-spec"],
+    "query": "/scrum-spec tasks rb-13-cancel-booking",
+    "files": ["evals/files/room-booking/scrum-spec/rb-13-cancel-booking/spec.md"],
     "expected_behavior": [
-      "Questions found go into Open Questions in 02-ac.md (no separate question table in 03-spec-review.md), with the 'Needed before' column split into design and later, and asks the questions needed before design first",
-      "Also reviews from QA's point of view (how each AC is tested and which EC is missing)",
-      "Records the answer 'scope ends at frame C.4' in 00-decisions.md with 'Decided by' as <git user.name> (<role>) and the date, not an AI",
-      "Proposes edits to 02-ac.md (AC and Open Questions) and to 01-input.md if the scope changes, and asks before editing",
-      "Items answered 'don't know yet' stay open in Open Questions and are in questions-po.md",
-      "Warns that questions needed before design are still open, so going straight to step 4 may mean redoing the design"
+      "Says Q2 (cancel API, BE) blocks tasks and asks it before drafting tasks that depend on it",
+      "If the user answers 'use the proposal for now', records a D starting 'assumption:' with the user's git name, sets Q2's Answer to ⚠️ D<n> (not ✅, so BE still sees it), then drafts the tasks",
+      "Adds a BE task for DELETE /bookings/:id with the contract (403 when not the owner) and an FE task, every AC and EC in some task's AC column",
+      "Every path in Files exists in the fixture or is marked (new); no Owner or estimate column",
+      "The reply has a 'Ready:' line before Next"
     ]
   },
   {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-ac ticket=demo-room-booking (PO has answered in questions-po.md)",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/demo-room-booking/00-decisions.md",
-      "evals/files/demo-room-booking/01-input.md",
-      "evals/files/demo-room-booking/02-ac.md",
-      "evals/files/demo-room-booking/questions-po.md"
-    ],
+    "skills": ["scrum-spec"],
+    "query": "/scrum-spec handoff rb-12-book-room",
+    "files": ["evals/files/room-booking/scrum-spec/rb-12-book-room/spec.md", "evals/files/room-booking/test/fixtures/users.ts"],
     "expected_behavior": [
-      "Reads questions-po.md and finds the answer 'Accept PDF and DOCX' that is not yet in 00-decisions.md",
-      "Does not reply that nothing changed, because a questionnaire answer counts as new information",
-      "Records it as D6 and edits Business Rules, AC4, EC2 and Open Questions in 02-ac.md to accept PDF and DOCX",
-      "Also edits 01-input.md and says in chat which files were edited"
+      "Keeps the existing Test steps as the base and changes only what has new information; with nothing new, says so instead of redrafting",
+      "Accounts are Staff Sam and Admin Alex from test/fixtures/users.ts",
+      "Every AC and EC has a ### block with numbered steps starting with a verb, without restating the AC's Then as an expected result",
+      "'Do not report' lists cancelling (RB-13) and email notifications",
+      "Does not edit Story, Rules, Acceptance Criteria or Tasks"
     ]
   },
   {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec plan-tasks ticket=ready-conflict",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/ready-conflict/00-decisions.md",
-      "evals/files/ready-conflict/01-input.md",
-      "evals/files/ready-conflict/02-ac.md",
-      "evals/files/ready-conflict/05-tasks.md"
-    ],
+    "skills": ["scrum-spec"],
+    "query": "/scrum-spec split room-booking then paste: 'Staff book a room, see their bookings, edit or cancel them. Admin approves bookings of the large room and sees a report of room use per month. This Sprint: booking and my bookings.'",
+    "files": ["evals/files/room-booking/src/booking/BookingPage.tsx", "evals/files/room-booking/src/rooms/rooms.ts"],
     "expected_behavior": [
-      "Runs scripts/check.py with the full path of the ticket folder and uses the coverage in the Tasks summary line",
-      "Flags that 01-input.md still says editing a booking (RB-13) is out of scope while D1 says the edit page changes too, and that AC2 searches for 'A', which conflicts with the 3-character rule; then summarises what it will change and asks before overwriting",
-      "Ends the step with a 'Ready to start:' line that picks 1 result with a reason, does not write a separate ready file, and does not add a D row for the ready result",
-      "The ticket is on the large track with no 03 or 04 yet, so it answers 'Ready to start: Fix first (recommended)' and 'Next' points to step 3 · /scrum-spec plan-review, not step 6",
-      "Every path in 05-tasks.md exists in the test repo or ends with (new), and check.py reports no path error · does not make up paths it cannot find"
+      "Writes scrum-spec/room-booking/map.md with Steps, Stories, Not now, Questions, Decisions and Source",
+      "Stories are vertical slices (no 'build the API' story); the monthly report is in a later story or Not now",
+      "Size signals are facts from the code (e.g. booking page exists, no approval flow yet), never points or S/M/L",
+      "Asks the PO to confirm the split and first slice, and asks before creating any story folder",
+      "Creates spec.md only for the stories the user confirms, each with only the Story section filled"
     ]
   },
   {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec sprint-handoff ticket=demo-room-booking (06-handoff.md was sent to QA on 2026-01-08 · after that D5 changed the file size to 10 MB)",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/demo-room-booking/00-decisions.md",
-      "evals/files/demo-room-booking/02-ac.md",
-      "evals/files/demo-room-booking/05-tasks.md",
-      "evals/files/demo-room-booking/06-handoff.md"
-    ],
+    "skills": ["scrum-spec"],
+    "query": "/scrum-spec ac rb-15-double-booking then paste the bug: 'Two people can book Room 1 for the same time if they press Book at the same moment. Repro: open two browsers, same slot, press Book together. Expected: the second one sees This room is already booked.'",
+    "files": ["evals/files/room-booking/src/booking/api.ts"],
     "expected_behavior": [
-      "Uses the existing 06-handoff.md as the base and saves over that file, without starting a new one from scratch",
-      "Edits the test steps only for AC4 and EC2 to use 10 MB per D5, keeps the other AC as they are, and tells QA in chat that AC4 and EC2 changed",
-      "Updates the AC4 and EC2 test data (PDF sizes) to match 10 MB and keeps the other personas and data from the existing 06-handoff.md",
-      "Does not ask for the MR, build version or env",
-      "Gives the next step as 7 · /scrum-spec sprint-close at Sprint end"
+      "The Story section has Now, Expected and Repro instead of a user story",
+      "AC are the correct behavior; EC are what must not change (a normal single booking still works)",
+      "Cites src/booking/api.ts for the existing 409 handling in Source, and asks the API owner whether the server checks the slot atomically instead of assuming it"
     ]
   },
   {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec sprint-close ticket=demo-room-booking (all tasks are done · all files in the folder are committed)",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/glossary/booking.md",
-      "evals/files/demo-room-booking/00-decisions.md",
-      "evals/files/demo-room-booking/01-input.md",
-      "evals/files/demo-room-booking/02-ac.md",
-      "evals/files/demo-room-booking/03-spec-review.md",
-      "evals/files/demo-room-booking/04-design.md",
-      "evals/files/demo-room-booking/05-tasks.md",
-      "evals/files/demo-room-booking/06-handoff.md",
-      "evals/files/demo-room-booking/questions-po.md"
-    ],
+    "skills": ["scrum-spec"],
+    "query": "/scrum-spec ac rb-12-book-room then say: 'also bookings must start on the hour'",
+    "files": ["evals/files/room-booking/scrum-spec/rb-12-book-room/spec.md"],
     "expected_behavior": [
-      "Runs git status on the ticket folder first, and continues because everything is committed",
-      "Asks whether the ticket meets the Definition of Done (definition_of_done is –, so it asks where the DoD is) without deciding itself",
-      "Does not add the 24-hour time rule (D3) again, because it is already in docs/glossary/booking.md",
-      "Asks whether the cross-day booking assumption (D2) is confirmed / move to Carried over / no longer doing it, without changing it to decided itself",
-      "Finds the answer 'Accept PDF and DOCX' in questions-po.md that is not yet in 00-decisions.md and sorts it by the criteria, without silently dropping it",
-      "Proposes adding 'Editing and cancelling a booking (RB-13)' to the 'Carried over' table with a date in the 'Added' column",
-      "Does not move D1 (Sprint Goal), D4 (Ready result), AC, design or tasks into the glossary, and creates no new document files outside the glossary",
-      "Shows the glossary rows to change and the list of files to delete, then asks, and deletes nothing before the user confirms",
-      "After deleting, runs check.py on docs/glossary, replies in the step 7 format, and does not commit"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-split flow=room-booking-flow then paste the flow: 'Staff search for a free room by date and time → book the room → the large meeting room needs manager approval → email notification once approved → staff can cancel the booking · needs a new approval API from BE'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/glossary/booking.md"
-    ],
-    "expected_behavior": [
-      "Reads steps/00-refine-split.md and saves docs/backlog/room-booking-flow/00-map.md with the first line <!-- scrum-spec 00 · refine-split · YYYY-MM-DD -->",
-      "The Backbone comes only from the given flow, and every activity is in some story or in 'Not now'",
-      "Every story is a vertical slice; there is no story like 'build the approval API' or 'build the screen' split by layer · the approval API work is in the story where the manager approves",
-      "Flags that the flow conflicts with the glossary rule 'Only admin can book the large meeting room' and asks whether to change the rule or make an exception, without choosing",
-      "Size signals are facts, e.g. 'needs a new API', with no points, S/M/L or number of days",
-      "Order, first slice and deferring email are in the 'To decide' table as proposals, with result '❌ not yet' until the user answers",
-      "Shows the story list and asks before creating the story folders; creates none before the user confirms",
-      "Asks once which role the user answers as, and 'To decide' results the user answers are recorded as <git user.name> (<role>) · ✅ right away even if the role is not PO",
-      "Gives the next step as 2 · /scrum-spec refine-ac story=room-booking-flow/<first story>"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-ac story=room-booking-flow/approve-large-room then answer the question about an absent manager with 'don't know yet, waiting for PO' and the others with 'use the proposal for now'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/backlog/room-booking-flow/00-map.md",
-      "evals/files/backlog/room-booking-flow/approve-large-room/01-input.md"
-    ],
-    "expected_behavior": [
-      "Reads the work folder at docs/backlog/room-booking-flow/approve-large-room/ and reports that the story is not in a Sprint yet",
-      "Reads docs/backlog/room-booking-flow/00-map.md and uses the results PO already approved (T1, T2) without asking again",
-      "Things the input does not say (e.g. who approves when the manager is absent, how long a request may stay pending) are proposals marked (Recommended) or [ask], not written as rules",
-      "The item answered 'don't know yet, waiting for PO' stays [ask], is in questions-po.md, and is not recorded as an assumption",
-      "Items the user said to 'use the proposal for now' are recorded as assumptions in 00-decisions.md with the 'Decided by' column as the user, not an AI",
-      "Every rule in Business Rules has at least 1 example in the AC table",
-      "Does not move the folder into docs/sprint/ itself",
-      "02-ac.md has the line **approve:** ❌ not yet · waiting for PO and does not change it to ✅ itself unless the user approved as PO",
-      "The 'Decided by' column of assumptions uses the name from git config user.name followed by the role the user gave",
-      "Business Rules and Given / When / Then are in business language, with no paths, field names or endpoints · evidence from code is under ### Evidence from code",
-      "The 'Verified by' column of the AC table is – because the story is still in Refinement"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec plan-goal sprint=5 then answer that the first Goal is chosen and dev takes book-small-room, and answer 'not yet' to git mv",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/backlog/room-booking-flow/00-map.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/01-input.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/02-ac.md",
-      "evals/files/backlog/room-booking-flow/approve-large-room/01-input.md"
-    ],
-    "expected_behavior": [
-      "Reads steps/plan-goal.md and collects items from docs/backlog/room-booking-flow/ in the order of 00-map.md",
-      "Shows the facts of each item: book-small-room has approved AC · approve-large-room has no 02-ac.md yet and needs a new API",
-      "Proposes 2–3 Sprint Goals as outcomes with the items that serve each, and lets PO choose, without choosing itself",
-      "Does not calculate capacity or add points, and asks dev which items they take",
-      "definition_of_done is –, so it asks once where the team's DoD is, without drafting a DoD itself",
-      "Saves docs/sprint/sprint-5.md with the first line <!-- scrum-spec goal · plan-goal · YYYY-MM-DD --> and the Goal's approve line is ✅ <name> (PO) only when the person answering is PO",
-      "Shows the git mv commands it would run and asks first · the user answers 'not yet', so no folder is moved",
-      "Says readiness is information for the team, not a gate"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-ac story=room-booking-flow/book-small-room then say 'answering as BA · add a question: should the booking page show the booker's name? waiting for PO'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/backlog/room-booking-flow/00-map.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/01-input.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/02-ac.md"
-    ],
-    "expected_behavior": [
-      "Uses the existing 02-ac.md as the base and adds the question to Open Questions as a new Q with status ❌ open, ask PO",
-      "Keeps the line **approve:** ✅ Alex (PO) · 2026-02-03, because PO approved in the file, and adding Open Questions does not turn the approval back to ❌",
-      "Does not write a new ✅ on behalf of PO, and does not record the BA's answer as PO's approval",
-      "Creates or edits questions-po.md with the added question",
-      "Does not fill in the 'Verified by' column because it is still in Refinement"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-ac story=room-booking-flow/book-small-room then say 'answering as PO · new rule: bookings can be made at most 14 days ahead, for every booking, small and large rooms'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/backlog/room-booking-flow/00-map.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/01-input.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/02-ac.md",
-      "evals/files/backlog/room-booking-flow/approve-large-room/01-input.md",
-      "evals/files/glossary/booking.md"
-    ],
-    "expected_behavior": [
-      "Records a new D in book-small-room's 00-decisions.md with Decided by as the name from git config (PO), not an AI",
-      "Edits book-small-room's 02-ac.md (Business Rules, and AC or EC about booking more than 14 days ahead) and recounts the numbers on the **Summary:** line",
-      "Keeps the approve line of 02-ac.md as ✅ Alex (PO) · 2026-02-03 and appends (incl. D<n> · <date>), without changing it to ❌ or asking PO to approve again",
-      "Adds the rule to the 'Rules across tickets' table of glossary/booking.md, in that one place only",
-      "Finds that approve-large-room is affected too and updates it in the same run (adds a D row starting 'per book-small-room D<n>:' to that story's decisions file and edits its 01-input.md), without postponing it to when that story's step runs",
-      "The 'other files updated:' line in the reply lists the path of every file actually edited, including the glossary and approve-large-room"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-ac story=room-booking-flow/book-small-room then say 'answering as BE · the existing booking API can only say that the time clashes, without details; make the EC1 message \"This time is not available\"'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/backlog/room-booking-flow/00-map.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/01-input.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/02-ac.md",
-      "evals/files/backlog/room-booking-flow/approve-large-room/01-input.md",
-      "evals/files/glossary/booking.md"
-    ],
-    "expected_behavior": [
-      "Records a new D with Decided by as the name from git config (BE) and 'Confirmed by' as –",
-      "Changes the message in EC1 of 02-ac.md to 'This time is not available' without asking before editing",
-      "Keeps the approve line of 02-ac.md as ✅ Alex (PO) · 2026-02-03 and appends (incl. D<n> · <date>), without changing it to ❌",
-      "Does not ask PO to approve or acknowledge, and does not create a question for PO about this in questions-po.md"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec what's next, is anything blocked?",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/backlog/room-booking-flow/00-map.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/01-input.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/02-ac.md",
-      "evals/files/backlog/room-booking-flow/approve-large-room/01-input.md",
-      "evals/files/glossary/booking.md"
-    ],
-    "expected_behavior": [
-      "Runs status: runs check.py --status on the work folders, writes or edits no files, and asks no questions",
-      "Shows the table from the script: book-small-room small track, AC approved, next plan-goal · approve-large-room large track, no 02-ac.md yet, next refine-ac",
-      "Has the headings Questions blocking the next step, Can do now without waiting, and Next as a single command, e.g. 2 · /scrum-spec refine-ac story=room-booking-flow/approve-large-room",
-      "Numbers in the reply match the script output and are not counted by hand"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-ac room-booking-flow/approve-large-room I am every role",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/backlog/room-booking-flow/00-map.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/01-input.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/02-ac.md",
-      "evals/files/backlog/room-booking-flow/approve-large-room/01-input.md",
-      "evals/files/glossary/booking.md"
-    ],
-    "expected_behavior": [
-      "Accepts the story name without story= and runs step 2 for approve-large-room",
-      "Saves 02-ac.md and starts asking with AskUserQuestion in the same turn, without ending the turn with a list of [ask] items waiting for the user to say 'ask me'",
-      "The first round starts with a summary of at most 5 lines on what was drafted and how many questions it will ask",
-      "Because the user is every role, it asks every role's questions in chat and records the decider as <name> (<role of the question>), and creates no questions-*.md for items already answered",
-      "Keeps asking until there are none left or the user answers 'use all the recommendations'"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec 1 ticket=demo-room-booking แล้ววาง note: 'พนักงานจองห้องประชุมเอง เลือกวัน เวลา และห้อง แนบวาระ ปุ่มจอง disable เมื่อกรอกไม่ครบ ห้องประชุมใหญ่จองได้เฉพาะ admin · ต้องมี API สร้างการจองใหม่ที่ BE ยังไม่ได้ทำ'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md"
-    ],
-    "expected_behavior": [
-      "Reads the config at scrum-spec/config.md first and does not run setup",
-      "Saves docs/sprint/demo-room-booking/01-input.md with the first line <!-- scrum-spec 01 · refine-intake · YYYY-MM-DD -->",
-      "Headings, field labels and markers are in English as in the template: '## 0 · Input', '**approve:**', '- **Track:**', '- **Related Sprint Goal:**', '[ask: … · <role>]'",
-      "The Track value is the English word 'large' (not 'ใหญ่'), followed by a reason written in Thai, e.g. 'large · reason: ต้องตกลง API สร้างการจองใหม่กับ BE ก่อน'",
-      "Drafted free text (Feature Name, User Story, Business Context, In Scope, Out of Scope) is in Thai, the language of the note, e.g. In Scope has 'ห้องประชุมใหญ่จองได้เฉพาะ admin'",
-      "Fields missing from the note (Sprint, Ticket ID, Sprint Goal) are [ask: …] with the English marker and a role from the Roles table, not made up",
-      "Chat shows only the summary and gives the next step as 2 · /scrum-spec refine-ac"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-ac story=room-booking-flow/book-small-room แล้วตอบว่า 'ตอบในฐานะ PO · จองได้ครั้งละไม่เกิน 4 ชั่วโมง'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md",
-      "evals/files/backlog/room-booking-flow/00-map.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/01-input.md",
-      "evals/files/backlog/room-booking-flow/book-small-room/02-ac.md"
-    ],
-    "expected_behavior": [
-      "Records a new D row in book-small-room's 00-decisions.md under the English columns '| # | Topic | Decision | Type | Decided by · date | Confirmed by · date | Files updated |', with Topic and Decision written in Thai (e.g. 'จองได้ครั้งละไม่เกิน 4 ชั่วโมง')",
-      "The Type cell is the English value 'decided' (not 'ตัดสินแล้ว'), and Decided by is the name from git config followed by (PO) and the date, not an AI",
-      "Adds the rule to Business Rules in 02-ac.md in Thai, and adds an EC row in Thai under the English table header '| # | Given | When | Then | Verified by |', e.g. Given 'ห้อง 1 ว่างทั้งวัน' When 'พนักงานจองห้อง 1 เวลา 09:00–14:00' Then 'เห็นข้อความว่าจองได้ไม่เกิน 4 ชั่วโมง'",
-      "Existing English AC rows are not translated into Thai",
-      "Recounts the **Summary:** line in English as 'AC 2 · EC 2 · Open Questions 0' (or matching the new table)",
-      "Keeps the approve line as ✅ Alex (PO) · 2026-02-03 and appends '(incl. D<n> · <date>)' with the English marker, without changing it to ❌",
-      "The 'Verified by' cell of the new row is – because the story is still in Refinement"
-    ]
-  },
-  {
-    "skills": [
-      "scrum-spec"
-    ],
-    "query": "/scrum-spec refine-intake story=export-bookings then paste: 'Admins want to export the bookings of a month as CSV from the booking list. Not in a Sprint yet; the PO wants it refined before Planning.'",
-    "files": [
-      "evals/files/configs/gitlab-api-board.md"
-    ],
-    "expected_behavior": [
-      "Treats it as a single backlog card, not a whole flow, and does not propose step 0 refine-split",
-      "Saves docs/backlog/export-bookings/01-input.md (directly under backlog_root, with no flow folder) with the first line <!-- scrum-spec 01 · refine-intake · YYYY-MM-DD -->",
-      "Writes '- **Sprint / Ticket ID:** not in a Sprint yet' exactly",
-      "Proposes a track with the English value small, large or bug and a reason, and asks the user to pick",
-      "Runs check.py on the folder, and `check.py --status docs/backlog` lists export-bookings with '· backlog' in the Track column",
-      "Next is 2 · /scrum-spec refine-ac story=export-bookings, not plan-tasks"
+      "Treats the user's statement as a decision: adds D2 with the user's git name and date, adds the rule and an EC, and greps other specs in scrum-spec/ for booking times (rb-13 is not affected, so it is left alone)",
+      "Keeps '**approve:** ✅ Alex · 2026-11-03' and appends D2 inside the (incl. …) note, because the change follows a decision",
+      "Does not rewrite AC the team already has; adds the new EC to a task's AC column and a test step for it, so check.py still reports 'AC/EC with no task: none'"
     ]
   }
 ]

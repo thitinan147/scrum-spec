@@ -2,13 +2,18 @@
 
 Versions below 1.0 may change the document format (markers, headings, file names, config keys). Each such change is listed here. From 1.0, a format change bumps the major version and comes with upgrade notes.
 
+## 0.2.0 - smallest useful skill
+
+Breaking: a new document format. v0.1 documents are not read or migrated; finish them with v0.1 or copy their AC into a new `spec.md`.
+
+- Four commands: `split`, `ac`, `tasks`, `handoff` (plus `help`). Removed: `refine-intake` (folded into `ac`), `plan-goal`, `plan-review` (a short review now runs inside `ac`), `plan-design` (an API to agree becomes a question that blocks tasks), `sprint-close`, `status`, `setup`, `board`.
+- One `spec.md` per story instead of `01-input`, `02-ac`, `03-spec-review`, `04-design`, `05-tasks`, `06-handoff`, `00-decisions` and `questions-*.md`. Questions are answered in the file's Answer column.
+- No backlog/Sprint folders, no tracks, no glossary, no `config.local.md`. `scrum-spec/config.md` is optional with 4 keys.
+- One approval (the PO on AC). Decisions record a name and date.
+- Each fact lives in one place: an answered question moves to Decisions and its row is deleted; test steps use the AC's Then as the expected result; a decision is applied to every section and to other specs with the same rule (`per <work> D<n>:`); other specs are grepped, not read whole.
+- `check.py` cut from about 500 to about 230 lines: marker, table cells, person on approvals and decisions, AC/EC and D references, cited paths, task and test-step coverage, open questions, and assumptions (`⚠️ D<n>`) still waiting for the asked role. "AI" only matches in upper case, so a person nicknamed "Ai" passes.
+- One run loads at most 1,500 words of instructions (`SKILL.md` + one step file), down from about 6,000.
+
 ## 0.1.0 - first release
 
-- `/scrum-spec` drafts a Scrum team's spec documents step by step: story map (step 0), input (1), requirements and acceptance criteria (2), Sprint Goal (`plan-goal`), spec review (3), technical design (4), tasks with a readiness check (5), tester handoff (6) and sprint close (7).
-- Three ways in: a whole board or flow, a single backlog card, or a card already in the Sprint.
-- Three tracks: small, large and bug.
-- The AI proposes and people decide: every decision, approval and "To decide" result records a person's name, role and date.
-- `scripts/check.py` checks every document folder: tables, first-line marker, cited paths, decision and AC references, approvals, summary counts, and readability. `--status` shows every piece of work, what blocks it, and the next step.
-- Markers, headings and table columns are in English; the drafted text follows the language of the input.
-- Project settings in `scrum-spec/config.md`; personal roles in `scrum-spec/config.local.md` (gitignored).
-- Human-only: `disable-model-invocation` (Claude Code), `allow_implicit_invocation: false` (Codex), and a `HUMAN-ONLY COMMAND.` description prefix (other agents).
+- Nine steps from story map to sprint close, three tracks, glossary, questionnaires, `check.py` with `--status`.

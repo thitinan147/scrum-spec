@@ -4,18 +4,12 @@ version: 2
 # Review with: skillspector scan skills/scrum-spec --baseline .skillspector-baseline.yaml --show-suppressed
 
 rules:
-  - id: "P2"
-    path: "*SKILL.md"
-    reason: "Matched the documented first line of board.html, '<!-- scrum-spec board · built from files <date> · do not edit -->'. It is a file marker the skill writes, shown in backticks, not a hidden instruction to the model."
   - id: "AE1"
     path: "*SKILL.md"
-    reason: "The scanner did not fully inspect scripts/check.py when SKILL.md mentions it. check.py is a 500-line, standard-library, read-only checker (re, sys, pathlib only); no subprocess, no network, no file writes. Reviewed by hand; covered by tests/test_check.py and bandit."
+    reason: "The scanner did not fully inspect scripts/check.py when SKILL.md mentions it. check.py is a 200-line, standard-library, read-only checker (re, sys, pathlib only); no subprocess, no network, no file writes. Reviewed by hand; covered by tests/test_check.py and bandit."
   - id: "LP1"
     path: "*scripts/check.py"
     reason: "check.py reads the Markdown files of the folders passed to it; that is its whole job. allowed-tools only PRE-APPROVES the check.py call so the user is not prompted; reading files needs no extra grant."
   - id: "EA2"
     path: "*"
-    reason: "Matched 'without asking' / 'no approval' in rules that do the opposite of autonomous decisions: an edit that follows a decision a person already approved is applied without asking for the same approval twice, and the 'Verified by' test column is filled from the tasks. Deciding scope, AC, deleting files and moving folders all require the user's confirmation (SKILL.md Rules)."
-  - id: "PE1"
-    path: "*steps/06-sprint-handoff.md"
-    reason: "Matched the handoff template labels 'Has permission:' / 'No permission:', which describe which test persona can or cannot use a feature. The skill requests no permission."
+    reason: "Matched rules about applying an edit that follows a decision a person already made without asking for the same approval twice. Scope, AC and every decision still require a person; the skill never deletes, moves, commits or pushes."

@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: A step or check.py did not behave as documented
+about: A command or check.py did not behave as documented
 labels: bug
 ---
 
@@ -15,7 +15,7 @@ labels: bug
 - scrum-spec version (tag or commit):
 - Agent (Claude Code, Codex, Cursor, ...):
 - OS and Python version:
-- Step and command you ran (e.g. `/scrum-spec refine-ac ticket=...`):
+- Step and command you ran (e.g. `/scrum-spec ac rb-12-book-room`):
 
 **check.py output** (remove anything private: names, customer data, internal paths)
 

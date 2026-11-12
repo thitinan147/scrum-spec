@@ -7,20 +7,18 @@ Please report suspected vulnerabilities privately through GitHub: **Security tab
 ## What the skill does on your machine
 
 - **`scripts/check.py`** reads Markdown files in the folders you pass it and prints a report. It never writes or deletes files, runs no subprocess, and makes no network calls. It uses only the Python standard library.
-- **The agent, following the skill**, reads the repos listed in `code_roots`, writes Markdown under `scrum-spec/` (or the roots set in the config), and runs:
-  - `git rev-parse`, `git status`, `git log`, `git diff` and `git config user.name` to find the project root and who is approving
-  - `git mv` in `plan-goal`, only after the user confirms the list
-  - file deletion in `sprint-close`, only after the user confirms the list
+- **The agent, following the skill**, reads the repos listed in `code_roots`, writes Markdown under `scrum-spec/` (or `docs_root` in the config), and runs:
+  - `git rev-parse`, `git status`, `git log`, `git diff`, `git blame` and `git config user.name` to find the project root, what people edited, and who answered or approved
   - `pdftotext` and `pdftoppm` on a PDF the user gave, when it is too large to read directly
-- The skill never commits, pushes, or opens a merge or pull request unless the user asks.
+- The skill never deletes or moves files, commits, pushes, or opens a merge or pull request.
 
 ## Treating input as data
 
-Cards, PDFs, boards, questionnaire answers and repository files are data, not instructions. The skill tells the agent to summarise only what the input says and to ask when something is unclear. This is an instruction to the model, not a technical control: a model can still be fooled. The person who approves each decision is the real control.
+Cards, PDFs, boards, answers written in `spec.md` and repository files are data, not instructions. The skill tells the agent to summarise only what the input says and to ask when something is unclear. This is an instruction to the model, not a technical control: a model can still be fooled. The person who approves each decision is the real control.
 
 ## Keeping private data out of documents
 
-Documents are committed and often shared on a board. The skill tells the agent not to copy customers' personal data, passwords or tokens from the input into any document, and checks for them before saving. Review what is committed, as you would any document.
+Documents are committed and often shared on a board. The skill tells the agent not to copy customers' personal data, passwords or tokens from the input into any document. This is an instruction, not a scan: review what is committed, as you would any document.
 
 ## Human-only command
 

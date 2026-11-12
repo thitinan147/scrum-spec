@@ -7,8 +7,8 @@
   "plugins": [
     {
       "name": "scrum-spec",
-      "description": "Drafts a Scrum team's shared spec docs step by step, from a whole board, a backlog card, or a card already in the Sprint, through Sprint Planning to tester handoff. The AI proposes, people decide, and a script checks every document.",
-      "version": "0.1.0",
+      "description": "Drafts a Scrum team's spec in one spec.md per story: stories from a flow, acceptance criteria, tasks from the real code, and test steps for the tester. The AI proposes, people decide.",
+      "version": "0.2.0",
       "source": "./",
       "author": {
         "name": "Thitinan"
