@@ -43,15 +43,6 @@
 
 - **D1** A booking lasts at most 4 hours · Alex · 2026-11-03
 
-## Tasks
-
-| Task | Do | AC | Files | Depends on |
-|---|---|---|---|---|
-| FE-01 | Enable "Book" only when the form is complete | AC1 | `src/booking/BookingPage.tsx` | – |
-| FE-02 | Submit the booking and show the conflict message | AC2, EC2 | `src/booking/api.ts` | FE-01 |
-| FE-03 | Limit a booking to 4 hours on the form | EC3 | `src/booking/BookingPage.tsx`, `src/booking/duration.ts` (new) | FE-01 |
-| BE-01 | Hide the large room from non-admin users | EC1 | `src/rooms/rooms.ts` | – |
-
 ## Test steps
 
 - **Accounts:** Admin Alex (admin) · Staff Sam (staff, no access to the large room)

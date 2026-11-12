@@ -1,13 +1,13 @@
 ---
 name: scrum-spec
-description: HUMAN-ONLY COMMAND. Drafts a Scrum team's spec, one spec.md per story - stories from a flow, acceptance criteria and open questions, tasks grounded in the code, test steps for the tester. Finds facts in the code, asks people only for decisions, records who decided. Type /scrum-spec, e.g. /scrum-spec ac rb-12-book-room.
+description: HUMAN-ONLY COMMAND. Drafts a Scrum team's spec, one spec.md per story - stories from a flow, acceptance criteria and open questions grounded in the code, test steps for the tester. Finds facts in the code, asks people only for decisions, records who decided. Type /scrum-spec, e.g. /scrum-spec ac rb-12-book-room.
 license: MIT
 compatibility: Claude Code, Codex, Cursor and other Agent Skills clients. Needs git and Python 3.10+ (standard library only). poppler is optional, for large PDFs.
 metadata:
   author: Thitinan
-  version: "0.2.0"
+  version: "0.3.0"
   short-description: Draft Scrum specs from the code; the AI proposes, people decide
-argument-hint: "<help | split | ac | tasks | handoff> [<work>] [text or path of a PDF or image]"
+argument-hint: "<help | split | ac | handoff> [<work>] [text or path of a PDF or image]"
 allowed-tools: Bash(python3 -I ${CLAUDE_SKILL_DIR}/scripts/check.py *) Bash(git rev-parse *) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git blame *) Bash(git config user.name)
 disable-model-invocation: true
 ---
@@ -16,7 +16,7 @@ disable-model-invocation: true
 
 Argument: `$ARGUMENTS` (if unreplaced: the text the user wrote after the command)
 
-Goal: remove waiting. The PO edits a draft instead of a blank page, dev start from tasks grounded in the code, the tester has test steps on day one. Write only what someone will act on; each fact lives in one place, cited elsewhere.
+Goal: remove waiting. The PO edits a draft instead of a blank page, dev start from AC with the code already found, the tester has test steps on day one. Write only what someone will act on; each fact lives in one place, cited elsewhere.
 
 ## Rules
 
@@ -34,7 +34,6 @@ Goal: remove waiting. The PO edits a draft instead of a blank page, dev start fr
 | `help` | [references/help.md](references/help.md) | nothing; show it with values filled in |
 | `split` | [steps/split.md](steps/split.md) | `<docs_root>/<flow>/map.md`, then a `spec.md` per confirmed story |
 | `ac` | [steps/ac.md](steps/ac.md) | Story, Rules, Acceptance Criteria, Questions in `spec.md` |
-| `tasks` | [steps/tasks.md](steps/tasks.md) | Tasks in `spec.md` |
 | `handoff` | [steps/handoff.md](steps/handoff.md) | Test steps in `spec.md` |
 
 - `<command>`: `/scrum-spec`, or `/scrum-spec:scrum-spec` as a plugin
@@ -50,21 +49,20 @@ Goal: remove waiting. The PO edits a draft instead of a blank page, dev start fr
 docs_root: scrum-spec
 code_roots: .
 roles: PO, Dev, QA
-task_prefixes: FE, BE
 ```
 
 `code_roots`: every repo to search (e.g. `., ../api`); `roles` fill the Ask column.
 
-`spec.md` starts with `<!-- scrum-spec -->` and `# <work>`, then `## Story`, `## Rules`, `## Acceptance Criteria`, `## Questions`, `## Decisions`, `## Tasks`, `## Test steps`, in this order.
+`spec.md` starts with `<!-- scrum-spec -->` and `# <work>`, then `## Story`, `## Rules`, `## Acceptance Criteria`, `## Questions`, `## Decisions`, `## Test steps`, in this order. A `## Tasks` section from an older version stays as it is.
 
 ## Workflow
 
 1. **Find the work:** the name given, else the one in this conversation, else ask, listing existing folders. Read the whole step file and the existing `spec.md`.
 2. **Gather facts yourself:** the input, then every `code_roots` path (screens, routes, APIs, permissions, fixtures); grep other specs instead of reading them whole. Ask people only for decisions and facts not in the repo. A contradiction: cite the path and ask.
-3. **Write only this command's sections,** plus edits a decision requires (item 6). An existing section is the base: change only what has new information. If a person's edit to Rules or AC left Tasks or Test steps behind, update them and say so. Headings and columns exactly as the template; text in parentheses is an instruction.
+3. **Write only this command's sections,** plus edits a decision requires (item 6). An existing section is the base: change only what has new information. If a person's edit to Rules or AC left Test steps behind, update them and say so. Headings and columns exactly as the template; text in parentheses is an instruction.
 4. **Check:** run `python3 -I <skill_dir>/scripts/check.py <folder>` (`<skill_dir>` holds this file). Fix every `ERROR`, rerun; if it cannot run, say so.
 5. **Ask** in the same turn, never ending on a bare list:
-   - at most 4 at a time, most impact first, only ones that change scope, an AC, an API or a task; the rest wait in the table for the next round
+   - at most 4 at a time, most impact first, only ones that change scope, an AC or an API; the rest wait in the table for the next round
    - each stands alone, says what it changes, offers a "(Recommended)" option with its reason, and "Don't know / ask <role>"
    - ask only questions for the user's role (from this conversation, else ask it with the first questions); other roles' questions and "Don't know" stay in Questions for anyone to answer later in the Answer cell
    - "use the recommendations" accepts every recommended option

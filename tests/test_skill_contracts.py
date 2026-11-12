@@ -60,7 +60,7 @@ class SkillContractTests(unittest.TestCase):
     def test_one_run_loads_at_most_1500_words(self) -> None:
         skill_words = len(skill_text().split())
         steps = {p.name: len(p.read_text(encoding="utf-8").split()) for p in (SKILL / "steps").glob("*.md")}
-        self.assertEqual(sorted(steps), ["ac.md", "handoff.md", "split.md", "tasks.md"])
+        self.assertEqual(sorted(steps), ["ac.md", "handoff.md", "split.md"])
         for name, words in steps.items():
             self.assertLessEqual(skill_words + words, 1500, f"SKILL.md + {name}: {skill_words + words} words")
         for ref in (SKILL / "references").glob("*.md"):
@@ -118,17 +118,16 @@ class SkillContractTests(unittest.TestCase):
     def test_checker_markers_appear_in_the_prompts(self) -> None:
         prompts = "\n".join(p.read_text(encoding="utf-8") for p in SKILL.rglob("*.md"))
         for marker in ("<!-- scrum-spec -->", "**approve:** ❌ waiting for PO", "**approve:** ✅ <name> · <YYYY-MM-DD>",
-                       "- **D<n>** <what was decided> · <name> · <YYYY-MM-DD>", "⚠️ D<n>", "per <work> D<n>:", "(new)", "**Source:**",
-                       "## Acceptance Criteria", "## Questions", "## Decisions", "## Tasks",
-                       "| # | Given | When | Then |", "| # | Question | Ask | Blocks | Answer |",
-                       "| Task | Do | AC | Files | Depends on |"):
+                       "- **D<n>** <what was decided> · <name> · <YYYY-MM-DD>", "⚠️ D<n>", "per <work> D<n>:", "**Source:**",
+                       "## Acceptance Criteria", "## Questions", "## Decisions", "## Test steps",
+                       "| # | Given | When | Then |", "| # | Question | Ask | Blocks | Answer |"):
             self.assertIn(marker, prompts, f"check.py relies on {marker!r} but no prompt writes it")
 
     def test_fixtures_follow_the_templates(self) -> None:
         spec = (REPO / "evals" / "files" / "room-booking" / "scrum-spec" / "rb-12-book-room" / "spec.md").read_text(encoding="utf-8")
         order = [line for line in spec.splitlines() if line.startswith("## ")]
         self.assertEqual(order, ["## Story", "## Rules", "## Acceptance Criteria", "## Questions", "## Decisions",
-                                 "## Tasks", "## Test steps"])
+                                 "## Test steps"])
         for section in order:
             self.assertIn(section, skill_text())
 

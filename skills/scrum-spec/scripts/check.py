@@ -7,13 +7,13 @@ ERROR, exit 1:
   - the first line is not the <!-- scrum-spec --> marker
   - a table row has a different number of cells than its header
   - an approval or a decision without a person and a date, or given by an AI
-  - a task cites an AC or EC that does not exist, or any text cites a D that does not exist
-  - a path in Tasks or Source does not exist in the git root or a code_roots path
+  - any text cites a D that does not exist
+  - a path in Source does not exist in the git root or a code_roots path
     (mark a file to create with "(new)")
 
 Reported, exit 0: approval status, open and blocking questions, assumptions waiting
-for the asked role, answers not yet recorded as decisions, AC and EC with no task
-or no test step.
+for the asked role, answers not yet recorded as decisions, AC and EC with no test step.
+A ## Tasks section from scrum-spec 0.2 is kept as it is; its paths and AC are not checked.
 
 Read-only, standard library only, Python 3.10+.
 """
@@ -141,20 +141,6 @@ def check(doc: Path) -> tuple[list[str], list[str]]:
                     errors.append(f"line {n}: D{ref} is not in Decisions")
 
     ac_ids = [r[0] for s, _, rows in tables if s == "Acceptance Criteria" for _, r in rows if AC_ID.fullmatch(r[0])]
-    task_rows = [(n, r) for s, h, rows in tables if s == "Tasks" for n, r in rows]
-    covered: set[str] = set()
-    for s, header, rows in tables:
-        if s != "Tasks" or "AC" not in header:
-            continue
-        col = header.index("AC")
-        for n, row in rows:
-            for ref in AC_ID.findall(row[col] if col < len(row) else ""):
-                covered.add(ref)
-                if ref not in ac_ids:
-                    errors.append(f"line {n}: {row[0]} cites {ref}, which is not in Acceptance Criteria")
-    if task_rows:
-        missing = [a for a in ac_ids if a not in covered]
-        notes.append("AC/EC with no task: " + (", ".join(missing) if missing else "none"))
     if "Test steps" in sections:
         tested = {m for n, l in sections["Test steps"] if l.startswith("### ") for m in AC_ID.findall(l)}
         missing = [a for a in ac_ids if a not in tested]
@@ -164,9 +150,8 @@ def check(doc: Path) -> tuple[list[str], list[str]]:
     if roots is None:
         notes.append("paths not checked: no git repo found")
     else:
-        to_check = [(n, l) for s in ("Tasks", "Source") for n, l in sections.get(s, [])]
+        to_check = list(sections.get("Source", []))
         to_check += [(n, l) for v in sections.values() for n, l in v if "**Source:**" in l]
-        to_check += [(n, "|".join(r)) for n, r in task_rows]
         for n, text in sorted(set(to_check)):
             for token, new in CODE.findall(text):
                 path = LINE_SUFFIX.sub("", token)

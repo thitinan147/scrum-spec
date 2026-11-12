@@ -30,7 +30,7 @@
 | # | Question | Ask | Blocks | Answer |
 |---|---|---|---|---|
 | Q1 | Can admin cancel anyone's booking? Proposal: yes | PO | AC | yes, admin can cancel any booking — Alex |
-| Q2 | A cancel API does not exist. Proposal: `DELETE /bookings/:id`, 403 when not the owner | BE | tasks | |
+| Q2 | A cancel API does not exist. Proposal: `DELETE /bookings/:id`, 403 when not the owner | BE | dev | |
 | Q3 | Should the cancel confirmation have custom text? | UX | later | |
 
 ## Decisions

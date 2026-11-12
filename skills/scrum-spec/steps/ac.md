@@ -17,7 +17,7 @@ Goal: the PO approves a draft instead of writing one, and what two devs could bu
 - Story, Rules and AC use words seen on screen, no paths, fields or endpoints; code evidence goes in Source
 - Every button, field and state (empty, error, no permission) on input screens is in an AC/EC, Out of scope, or a question
 - **Bug:** the Story section has **Now**, **Expected** and **Repro** instead of the user story. AC = the correct behavior · EC = what must not change
-- A new or changed API: a question for its owner in `roles` (else Dev), Blocks `tasks`, with a one-line proposed contract
+- A new or changed API: a question for its owner in `roles` (else Dev), Blocks `dev`, with a one-line proposed contract
 - Keep existing AC and add only what is missing; a cut AC keeps its number in Out of scope ("was EC4")
 - **Review before asking:** read the draft as a dev and as the tester; fix or ask about the places two people would read differently (data rules, permissions, states, errors, vague words like "fast" or "own")
 
@@ -52,17 +52,17 @@ Goal: the PO approves a draft instead of writing one, and what two devs could bu
 
 | # | Question | Ask | Blocks | Answer |
 |---|---|---|---|---|
-| Q1 | (one question; "Proposal: …" if there is one) | (a role) | AC / tasks / later | |
+| Q1 | (one question; "Proposal: …" if there is one) | (a role) | AC / dev / later | |
 
 ## Decisions
 
 - (none yet)
 ```
 
-- Blocks: `AC` = needed to approve · `tasks` = needed to break down the work · `later` = changes nothing structural
+- Blocks: `AC` = needed to approve · `dev` = needed before dev start the work · `later` = changes nothing structural
 - The PO approves in chat, or by editing the line to `**approve:** ✅ <name> · <YYYY-MM-DD>`
 
 ## After drafting
 
 - Too big (over 4 rule groups): propose a split and ask
-- Next: `tasks` once no question blocks `AC`
+- Next: `handoff` once no question blocks `AC`

@@ -7,7 +7,6 @@ Drafts a Scrum team's spec into one `spec.md` per story, so nobody waits on a bl
 ```
 <command> split <flow>     a whole flow → story map + one folder per story   (Refinement)
 <command> ac <work>        story, rules, acceptance criteria, questions        (Refinement)
-<command> tasks <work>     tasks pointing at real files, every AC covered      (Planning)
 <command> handoff <work>   test steps for the tester, on day one of the Sprint (Planning)
 <command>                  the next step of the work in this conversation
 ```
@@ -27,8 +26,8 @@ Paste the text after the command, or give a path to a PDF or image. Leave out wh
 ## Files
 
 - `<docs_root>/<work>/spec.md`, one per story or ticket. Commit it with the code; delete the folder when the ticket is done (git keeps history)
-- Optional `scrum-spec/config.md`: `docs_root`, `code_roots`, `roles`, `task_prefixes`
+- Optional `scrum-spec/config.md`: `docs_root`, `code_roots`, `roles`
 
 ## It does not
 
-Estimate, set priority or owners, write code, commit, push, or delete files.
+Break work into tasks (dev decide how to build), estimate, set priority or owners, write code, commit, push, or delete files.

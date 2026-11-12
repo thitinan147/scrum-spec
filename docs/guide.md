@@ -12,14 +12,13 @@ Scrum work waits on people: the PO writes AC from a blank page, dev rebuild cont
 - **Facts come from the code.** Before asking, the skill reads every repo in `code_roots`. People are asked only for decisions and for what is not in the repo.
 - **No one has to run the skill to answer.** Write in the Answer cell of the Questions table, or edit the approve line. The next run records it as a decision.
 - **Approval informs, it does not block.** The PO approves AC; a change that follows a decision keeps the approval, any other change to rules or AC resets it.
-- **Never estimates, prioritises, assigns owners, writes code, commits or deletes.**
+- **Never breaks work into tasks, estimates, prioritises, assigns owners, writes code, commits or deletes.** Dev decide how to build.
 
 ## Usage
 
 ```text
 /scrum-spec split <flow>        a whole flow → story map + one folder per story
 /scrum-spec ac <work>           story, rules, acceptance criteria, questions
-/scrum-spec tasks <work>        tasks pointing at real files, every AC covered
 /scrum-spec handoff <work>      test steps for the tester on day one
 /scrum-spec                     the next step of the work in this conversation
 /scrum-spec help                short usage
@@ -28,15 +27,15 @@ Scrum work waits on people: the PO writes AC from a blank page, dev rebuild cont
 Paste the card, bug or flow text after the command, or give a path to a PDF or image.
 
 ```
-Refinement                         Sprint Planning
-split <flow> (optional)            tasks <work>
-→ ac <story> per story              → handoff <work>
+Refinement                            Sprint Planning
+split <flow> (optional)               dev break the work into tasks
+→ ac <story> per story                handoff <work> → the tester
   PO answers questions, approves AC
 ```
 
 ## Files
 
-Everything for one story is in `<docs_root>/<work>/spec.md` (default `docs_root` is `scrum-spec`), in this order: Story · Rules · Acceptance Criteria · Questions · Decisions · Tasks · Test steps. A flow from `split` also has `<docs_root>/<flow>/map.md`.
+Everything for one story is in `<docs_root>/<work>/spec.md` (default `docs_root` is `scrum-spec`), in this order: Story · Rules · Acceptance Criteria · Questions · Decisions · Test steps. A `## Tasks` section from 0.2 is kept as it is. A flow from `split` also has `<docs_root>/<flow>/map.md`.
 
 Commit `spec.md` with the code. When the ticket is done, delete the folder; git keeps the history.
 
@@ -46,7 +45,6 @@ Commit `spec.md` with the code. When the ticket is done, delete the folder; git 
 docs_root: scrum-spec
 code_roots: ., ../api
 roles: PO, BE, UX, QA
-task_prefixes: FE, BE
 ```
 
 ## Check documents with the script
@@ -55,8 +53,8 @@ task_prefixes: FE, BE
 python3 -I <skill_dir>/scripts/check.py scrum-spec/
 ```
 
-- **Exit 1:** missing first-line marker, a broken table row, an approval or decision without a person and date or given by an AI, a reference to an AC/EC or D that does not exist, a path in Tasks or Source that does not exist (add `(new)` for files to create)
-- **Reported:** approval status, open and blocking questions, answers not yet recorded, AC/EC with no task
+- **Exit 1:** missing first-line marker, a broken table row, an approval or decision without a person and date or given by an AI, a reference to a D that does not exist, a path in Source that does not exist (add `(new)` for files to create)
+- **Reported:** approval status, open and blocking questions, answers not yet recorded, AC/EC with no test step
 
 ## Measure whether it helps
 

@@ -1,6 +1,8 @@
 [
   {
-    "skills": ["scrum-spec"],
+    "skills": [
+      "scrum-spec"
+    ],
     "query": "/scrum-spec help",
     "files": [],
     "expected_behavior": [
@@ -9,58 +11,82 @@
     ]
   },
   {
-    "skills": ["scrum-spec"],
+    "skills": [
+      "scrum-spec"
+    ],
     "query": "/scrum-spec ac rb-14-edit-booking แล้ววางโน้ต: 'พนักงานแก้เวลาการจองของตัวเองได้ ถ้ายังไม่ถึงเวลาเริ่ม ห้องที่เปลี่ยนไปต้องว่าง'",
-    "files": ["evals/files/room-booking/src/booking/api.ts", "evals/files/room-booking/src/rooms/rooms.ts"],
+    "files": [
+      "evals/files/room-booking/src/booking/api.ts",
+      "evals/files/room-booking/src/rooms/rooms.ts"
+    ],
     "expected_behavior": [
-      "Creates scrum-spec/rb-14-edit-booking/spec.md with first line <!-- scrum-spec --> and the sections Story, Rules, Acceptance Criteria, Questions, Decisions in that order, with no Tasks or Test steps",
+      "Creates scrum-spec/rb-14-edit-booking/spec.md with first line <!-- scrum-spec --> and the sections Story, Rules, Acceptance Criteria, Questions, Decisions in that order, with no Test steps",
       "Headings, table columns and '**approve:** ❌ waiting for PO' are in English; the story, rules, AC cells and questions are in Thai",
-      "Finds in src/booking/api.ts that there is no edit-booking API and adds a question for the API owner with Blocks 'tasks' and a one-line proposed contract, instead of inventing an endpoint as fact",
+      "Finds in src/booking/api.ts that there is no edit-booking API and adds a question for the API owner with Blocks 'dev' and a one-line proposed contract, instead of inventing an endpoint as fact",
       "Has EC rows for editing after the start time, a room that is no longer free, and someone else's booking (or a question about it)",
       "Runs check.py, then asks at most 4 questions in the same turn, each with a (Recommended) option and 'Don't know / ask <role>'",
       "The reply is at most 6 lines in the SKILL.md format, not the whole document"
     ]
   },
   {
-    "skills": ["scrum-spec"],
+    "skills": [
+      "scrum-spec"
+    ],
     "query": "/scrum-spec ac rb-13-cancel-booking",
-    "files": ["evals/files/room-booking/scrum-spec/rb-13-cancel-booking/spec.md"],
+    "files": [
+      "evals/files/room-booking/scrum-spec/rb-13-cancel-booking/spec.md"
+    ],
     "expected_behavior": [
       "Reads the filled-in Answer of Q1 and adds '- **D1** <admin can cancel any booking> · Alex · <date>' to Decisions, replacing '(none yet)', with Alex taken from the answer text, not from git config and not an AI",
       "Deletes the Q1 row and adds the admin rule and an AC or EC for it",
       "Leaves the approve line '❌ waiting for PO' (it was never approved)",
       "Does not answer Q2 or Q3 itself; Q2 stays open for BE",
-      "check.py exits 0 and reports Q2 as blocking (tasks · BE)"
+      "check.py exits 0 and reports Q2 as blocking (dev · BE)"
     ]
   },
   {
-    "skills": ["scrum-spec"],
-    "query": "/scrum-spec tasks rb-13-cancel-booking",
-    "files": ["evals/files/room-booking/scrum-spec/rb-13-cancel-booking/spec.md"],
+    "skills": [
+      "scrum-spec"
+    ],
+    "query": "/scrum-spec handoff rb-13-cancel-booking",
+    "files": [
+      "evals/files/room-booking/scrum-spec/rb-13-cancel-booking/spec.md",
+      "evals/files/room-booking/test/fixtures/users.ts"
+    ],
     "expected_behavior": [
-      "Says Q2 (cancel API, BE) blocks tasks and asks it before drafting tasks that depend on it",
-      "If the user answers 'use the proposal for now', records a D starting 'assumption:' with the user's git name, sets Q2's Answer to ⚠️ D<n> (not ✅, so BE still sees it), then drafts the tasks",
-      "Adds a BE task for DELETE /bookings/:id with the contract (403 when not the owner) and an FE task, every AC and EC in some task's AC column",
-      "Every path in Files exists in the fixture or is marked (new); no Owner or estimate column",
-      "The reply has a 'Ready:' line before Next"
+      "Records Q1's filled-in answer as a D by Alex and deletes the Q1 row before drafting",
+      "Says Q2 (cancel API, BE) blocks dev and changes what the tester checks (someone else's booking), and asks it first",
+      "If the user answers 'use the proposal for now', records a D starting 'assumption:' with the user's git name, sets Q2's Answer to ⚠️ D<n> (not ✅, so BE still sees it), then drafts the test steps",
+      "Every AC and EC has a ### block; 'Do not report' lists editing a booking and cites the assumption's D",
+      "Writes no Tasks section"
     ]
   },
   {
-    "skills": ["scrum-spec"],
+    "skills": [
+      "scrum-spec"
+    ],
     "query": "/scrum-spec handoff rb-12-book-room",
-    "files": ["evals/files/room-booking/scrum-spec/rb-12-book-room/spec.md", "evals/files/room-booking/test/fixtures/users.ts"],
+    "files": [
+      "evals/files/room-booking/scrum-spec/rb-12-book-room/spec.md",
+      "evals/files/room-booking/test/fixtures/users.ts"
+    ],
     "expected_behavior": [
       "Keeps the existing Test steps as the base and changes only what has new information; with nothing new, says so instead of redrafting",
       "Accounts are Staff Sam and Admin Alex from test/fixtures/users.ts",
       "Every AC and EC has a ### block with numbered steps starting with a verb, without restating the AC's Then as an expected result",
       "'Do not report' lists cancelling (RB-13) and email notifications",
-      "Does not edit Story, Rules, Acceptance Criteria or Tasks"
+      "Does not edit Story, Rules or Acceptance Criteria"
     ]
   },
   {
-    "skills": ["scrum-spec"],
+    "skills": [
+      "scrum-spec"
+    ],
     "query": "/scrum-spec split room-booking then paste: 'Staff book a room, see their bookings, edit or cancel them. Admin approves bookings of the large room and sees a report of room use per month. This Sprint: booking and my bookings.'",
-    "files": ["evals/files/room-booking/src/booking/BookingPage.tsx", "evals/files/room-booking/src/rooms/rooms.ts"],
+    "files": [
+      "evals/files/room-booking/src/booking/BookingPage.tsx",
+      "evals/files/room-booking/src/rooms/rooms.ts"
+    ],
     "expected_behavior": [
       "Writes scrum-spec/room-booking/map.md with Steps, Stories, Not now, Questions, Decisions and Source",
       "Stories are vertical slices (no 'build the API' story); the monthly report is in a later story or Not now",
@@ -70,9 +96,13 @@
     ]
   },
   {
-    "skills": ["scrum-spec"],
+    "skills": [
+      "scrum-spec"
+    ],
     "query": "/scrum-spec ac rb-15-double-booking then paste the bug: 'Two people can book Room 1 for the same time if they press Book at the same moment. Repro: open two browsers, same slot, press Book together. Expected: the second one sees This room is already booked.'",
-    "files": ["evals/files/room-booking/src/booking/api.ts"],
+    "files": [
+      "evals/files/room-booking/src/booking/api.ts"
+    ],
     "expected_behavior": [
       "The Story section has Now, Expected and Repro instead of a user story",
       "AC are the correct behavior; EC are what must not change (a normal single booking still works)",
@@ -80,13 +110,17 @@
     ]
   },
   {
-    "skills": ["scrum-spec"],
+    "skills": [
+      "scrum-spec"
+    ],
     "query": "/scrum-spec ac rb-12-book-room then say: 'also bookings must start on the hour'",
-    "files": ["evals/files/room-booking/scrum-spec/rb-12-book-room/spec.md"],
+    "files": [
+      "evals/files/room-booking/scrum-spec/rb-12-book-room/spec.md"
+    ],
     "expected_behavior": [
       "Treats the user's statement as a decision: adds D2 with the user's git name and date, adds the rule and an EC, and greps other specs in scrum-spec/ for booking times (rb-13 is not affected, so it is left alone)",
       "Keeps '**approve:** ✅ Alex · 2026-11-03' and appends D2 inside the (incl. …) note, because the change follows a decision",
-      "Does not rewrite AC the team already has; adds the new EC to a task's AC column and a test step for it, so check.py still reports 'AC/EC with no task: none'"
+      "Does not rewrite AC the team already has; adds a test step for the new EC, so check.py still reports 'AC/EC with no test step: none'"
     ]
   }
 ]

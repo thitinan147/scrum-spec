@@ -2,6 +2,15 @@
 
 Versions below 1.0 may change the document format (markers, headings, file names, config keys). Each such change is listed here. From 1.0, a format change bumps the major version and comes with upgrade notes.
 
+## 0.3.0 - no tasks
+
+Breaking: the `tasks` command is removed. Breaking work into tasks is the developers' decision at Sprint Planning, so the skill now writes only what to build (`ac`) and what to test (`handoff`).
+
+- Three commands: `split`, `ac`, `handoff` (plus `help`). `steps/tasks.md` and the `task_prefixes` config key are gone; a `task_prefixes` line in `config.md` is ignored.
+- `handoff` runs once no question blocks `AC`. It now checks that the personas the AC need can log in, and finds risky places from the paths in Source and from other specs that cite them.
+- Questions: the Blocks value `tasks` is renamed `dev` (needed before dev start the work). An old `tasks` row still counts as blocking.
+- `check.py` no longer checks a `## Tasks` section: no AC coverage by tasks and no paths in Tasks. A `## Tasks` section from 0.2 is kept as it is and needs no change.
+
 ## 0.2.0 - smallest useful skill
 
 Breaking: a new document format. v0.1 documents are not read or migrated; finish them with v0.1 or copy their AC into a new `spec.md`.

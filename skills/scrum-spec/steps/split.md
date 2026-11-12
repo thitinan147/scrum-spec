@@ -9,7 +9,7 @@ The goal: the PO edits a story map instead of splitting a board by hand. The spl
 1. **Steps:** list the user's activities in flow order, from the input only, each with who does it and its source
 2. **First slice:** the thinnest set of stories that works end to end
 3. **Stories:** split along one axis at a time: workflow steps (straight path first), then operation (create / edit / cancel), business rule, simple before complex · a time-boxed spike only when no one knows how to build it
-4. **Vertical:** every story gives the user something they can see or use. Never a story per layer ("build the API"); API work is a task inside the story that uses it
+4. **Vertical:** every story gives the user something they can see or use. Never a story per layer ("build the API"); API work is part of the story that uses it
 5. **Nothing dropped:** every step is in a story or in Not now
 
 ## Rules

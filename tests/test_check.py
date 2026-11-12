@@ -54,7 +54,6 @@ class CheckTests(unittest.TestCase):
             code, out = run(root / "scrum-spec" / "rb-12-book-room")
         self.assertEqual(code, 0, out)
         self.assertIn("approve: ✅ Alex · 2026-11-03 (incl. D1)", out)
-        self.assertIn("AC/EC with no task: none", out)
         self.assertIn("AC/EC with no test step: none", out)
         self.assertIn("questions open: 1", out)
         self.assertNotIn("blocking", out)
@@ -63,9 +62,8 @@ class CheckTests(unittest.TestCase):
         with Project("room-booking") as root:
             code, out = run(root / "scrum-spec" / "rb-13-cancel-booking")
         self.assertEqual(code, 0, out)
-        self.assertIn("blocking: Q2 (tasks · BE)", out)
+        self.assertIn("blocking: Q2 (dev · BE)", out)
         self.assertIn("answered, not yet in Decisions: Q1", out)
-        self.assertNotIn("AC/EC with no task", out)  # no Tasks yet, so coverage is not judged
 
     def test_folder_is_searched_recursively(self) -> None:
         with Project("room-booking") as root:
@@ -83,9 +81,7 @@ class CheckTests(unittest.TestCase):
                          "line 14: D1 must be decided by a person, not an AI",
                          "line 15: D2 must end with · <name> · YYYY-MM-DD",
                          "`src/missing/file.ts` not found",
-                         "D7 is not in Decisions",
-                         "FE-01 cites AC9, which is not in Acceptance Criteria",
-                         "AC/EC with no task: AC2"):
+                         "D7 is not in Decisions"):
             self.assertIn(expected, out)
 
     def test_nickname_ai_is_a_person(self) -> None:
@@ -97,9 +93,8 @@ class CheckTests(unittest.TestCase):
 
     def test_new_files_line_suffixes_and_endpoints_are_not_checked_as_missing(self) -> None:
         with Project("room-booking") as root:
-            spec = write_spec(root, "<!-- scrum-spec -->\n\n## Tasks\n\n"
-                                    "| Task | Do | AC | Files | Depends on |\n|---|---|---|---|---|\n"
-                                    "| BE-01 | Add `DELETE /bookings/:id` | – | `src/booking/cancel.ts` (new), `src/booking/api.ts:2` | – |\n")
+            spec = write_spec(root, "<!-- scrum-spec -->\n\n- **Source:** `DELETE /bookings/:id` · "
+                                    "`src/booking/cancel.ts` (new) · `src/booking/api.ts:2`\n")
             code, out = run(spec)
         self.assertEqual(code, 0, out)
 
@@ -115,16 +110,25 @@ class CheckTests(unittest.TestCase):
 
     def test_dotted_names_and_versions_are_not_paths(self) -> None:
         with Project("room-booking") as root:
-            spec = write_spec(root, "<!-- scrum-spec -->\n\n## Tasks\n\n"
-                                    "| Task | Do | AC | Files | Depends on |\n|---|---|---|---|---|\n"
-                                    "| FE-01 | Check `user.role` and `res.status` from `v0.2.0` | – | `src/booking/api.ts` | – |\n")
+            spec = write_spec(root, "<!-- scrum-spec -->\n\n- **Source:** `user.role` and `res.status` "
+                                    "from `v0.2.0` · `src/booking/api.ts`\n")
             code, out = run(spec)
         self.assertEqual(code, 0, out)
 
-    def test_paths_outside_tasks_and_source_are_not_checked(self) -> None:
+    def test_paths_outside_source_are_not_checked(self) -> None:
         with Project("room-booking") as root:
             spec = write_spec(root, "<!-- scrum-spec -->\n\n## Story\n\n- **In scope:** see `docs/later.md`\n")
             self.assertEqual(run(spec)[0], 0)
+
+    def test_tasks_section_from_0_2_is_kept_and_not_checked(self) -> None:
+        with Project("room-booking") as root:
+            spec = write_spec(root, "<!-- scrum-spec -->\n\n## Acceptance Criteria\n\n| # | Given | When | Then |\n"
+                                    "|---|---|---|---|\n| AC1 | a | b | c |\n\n## Tasks\n\n"
+                                    "| Task | Do | AC | Files | Depends on |\n|---|---|---|---|---|\n"
+                                    "| FE-01 | Build it | AC9 | `src/missing/file.ts` | – |\n")
+            code, out = run(spec)
+        self.assertEqual(code, 0, out)
+        self.assertNotIn("task", out)
 
     def test_no_git_root_skips_path_checks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -144,7 +148,7 @@ class CheckTests(unittest.TestCase):
         with Project("room-booking") as root:
             spec = write_spec(root, "<!-- scrum-spec -->\n\n## Questions\n\n"
                                     "| # | Question | Ask | Blocks | Answer |\n|---|---|---|---|---|\n"
-                                    "| Q1 | Cancel API? | BE | tasks | ⚠️ D1 |\n\n"
+                                    "| Q1 | Cancel API? | BE | dev | ⚠️ D1 |\n\n"
                                     "## Decisions\n\n- **D1** assumption: DELETE /bookings/:id · Pat · 2026-11-12 (Q1)\n")
             code, out = run(spec)
         self.assertEqual(code, 0, out)
