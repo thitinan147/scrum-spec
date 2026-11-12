@@ -1,0 +1,6 @@
+interface:
+  display_name: "Scrum Spec"
+  short_description: "Draft Scrum spec docs step by step; the AI proposes, people decide"
+
+policy:
+  allow_implicit_invocation: false

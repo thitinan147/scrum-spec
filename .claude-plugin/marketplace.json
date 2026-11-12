@@ -1,0 +1,18 @@
+{
+  "name": "scrum-spec",
+  "description": "Marketplace for the scrum-spec skill",
+  "owner": {
+    "name": "Thitinan"
+  },
+  "plugins": [
+    {
+      "name": "scrum-spec",
+      "description": "Drafts a Scrum team's shared spec docs step by step, from a whole board, a backlog card, or a card already in the Sprint, through Sprint Planning to tester handoff. The AI proposes, people decide, and a script checks every document.",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "Thitinan"
+      }
+    }
+  ]
+}

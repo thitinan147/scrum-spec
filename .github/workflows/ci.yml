@@ -1,0 +1,62 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python: ["3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -s tests
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
+      - name: bandit
+        run: uvx bandit -r skills
+      - name: Agent Skills spec validation
+        run: |
+          # disable-model-invocation and argument-hint are Claude Code fields outside the spec.
+          # Validate a copy without them so any other problem still fails.
+          rm -rf /tmp/spec && mkdir /tmp/spec && cp -R skills/scrum-spec /tmp/spec/scrum-spec
+          sed -i -e '/^disable-model-invocation:/d' -e '/^argument-hint:/d' /tmp/spec/scrum-spec/SKILL.md
+          uvx --from skills-ref agentskills validate /tmp/spec/scrum-spec
+
+  skillspector:
+    # Blocks on HIGH/CRITICAL findings; uploads SARIF to the Security tab.
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
+      - run: uv tool install git+https://github.com/NVIDIA/skillspector.git@v2.12.0
+      - name: Scan (static, no LLM)
+        run: |
+          mkdir -p sarif
+          skillspector scan skills/scrum-spec --no-llm --baseline .skillspector-baseline.yaml \
+            --format sarif --output sarif/scrum-spec.sarif
+      - uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: sarif/scrum-spec.sarif
+          category: skillspector-scrum-spec
