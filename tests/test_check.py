@@ -57,6 +57,7 @@ class CheckTests(unittest.TestCase):
         self.assertIn("AC/EC with no test step: none", out)
         self.assertIn("questions open: 1", out)
         self.assertNotIn("blocking", out)
+        self.assertNotIn("vague words", out)
 
     def test_open_and_unrecorded_questions_are_reported_not_failed(self) -> None:
         with Project("room-booking") as root:
@@ -170,6 +171,41 @@ class CheckTests(unittest.TestCase):
                                     "- **D1** per rb-12-book-room D3: bookings start on the hour · Pat · 2026-11-12\n")
             code, out = run(spec)
         self.assertEqual(code, 0, out)
+
+    def test_skill_decision_forms_must_exist(self) -> None:
+        with Project("room-booking") as root:
+            spec = write_spec(root, "<!-- scrum-spec -->\n\n## Acceptance Criteria\n\n"
+                                    "**approve:** ✅ Tek · 2026-11-15 (incl. D1, D9)\n\n"
+                                    "## Questions\n\n"
+                                    "| # | Question | Ask | Blocks | Answer |\n|---|---|---|---|---|\n"
+                                    "| Q1 | Ship it? | PO | later | ⚠️ D8 |\n\n"
+                                    "## Rules\n\n- Room D4 is the large room\n\n"
+                                    "## Decisions\n\n- **D1** Keep the large room · Tek · 2026-11-15\n")
+            code, out = run(spec)
+        self.assertEqual(code, 1, out)
+        self.assertIn("D9 is not in Decisions", out)
+        self.assertIn("D8 is not in Decisions", out)
+        self.assertNotIn("D4 is not in Decisions", out)
+        self.assertNotIn("D1 is not in Decisions", out)
+
+    def test_vague_words_in_ac_are_notes(self) -> None:
+        scripts = str(CHECK.parent)
+        sys.dont_write_bytecode = True
+        sys.path.insert(0, scripts)
+        try:
+            import check as check_mod
+        finally:
+            sys.path.remove(scripts)
+        thai = next(word for word in check_mod.VAGUE_WORDS if not word.isascii())
+        with Project("room-booking") as root:
+            spec = write_spec(root, "<!-- scrum-spec -->\n\n## Story\n\n- **Story:** Make it fast for staff\n\n"
+                                    "## Acceptance Criteria\n\n| # | Given | When | Then |\n|---|---|---|---|\n"
+                                    f"| AC1 | a | b | It should feel Nice and user-friendly |\n"
+                                    f"| EC1 | {thai} | b | breakfast is ready |\n")
+            code, out = run(spec)
+        self.assertEqual(code, 0, out)
+        self.assertIn("vague words in AC/EC: AC1 'nice', AC1 'user-friendly', EC1 '" + thai + "'", out)
+        self.assertNotIn("'fast'", out)
 
     def test_help_prints_usage(self) -> None:
         code, out = run("--help")

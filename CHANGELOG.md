@@ -2,6 +2,15 @@
 
 Versions below 1.0 may change the document format (markers, headings, file names, config keys). Each such change is listed here. From 1.0, a format change bumps the major version and comes with upgrade notes.
 
+## 0.5.0 - enforced checks
+
+- `check.py` reports an error when text cites a decision that is not in Decisions, including the forms the skill writes: `(incl. D<n>)` and a warning mark before `D<n>`. A capitalized name before the number (`Room D1`) is not a citation.
+- `check.py` and `board.py` share `scripts/specdoc.py`. A question is blocking on the board exactly when `check.py` reports it as blocking. Any Blocks value other than `later` blocks, in any case, including the old value `tasks`. An answer of `–` or `-` is still empty.
+- `check.py` notes vague words in AC and EC cells. The list is small and lives only in `check.py`: `fast`, `nice`, `user-friendly`, and the Thai words for fast, pretty and easy. A note does not change the exit code.
+- An AC is not checked for a matching EC. The Acceptance Criteria table has no column or marker that links an EC row to an AC row, so that check would be a guess.
+- `board.py` adds a mermaid `stateDiagram-v2` to each story card, one transition per AC or EC row: Given and Then are states, When is the label. Rows are not merged.
+- Docs: the README counts four commands plus help; the platform table says v0.5; SECURITY.md describes `board.py`, including the Google Fonts request in `board.html`. Evals include a `board` scenario.
+
 ## 0.4.0 - visual board
 
 - New `board` command and `scripts/board.py`: renders a standalone FigJam-style visual board from `map.md` and `spec.md` documents.

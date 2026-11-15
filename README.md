@@ -12,7 +12,7 @@
 - **Every decision has a name on it.** Decisions and the AC approval record a person and a date. A script fails any approval or decision given by an AI.
 - **Facts come from the code.** Before asking, the skill reads your repos. People are asked only for decisions.
 - **No one has to run the skill to answer.** The PO writes in the Answer column or edits the approve line; the next run records it.
-- **Small.** Three commands, one file per story, no required config, and one run loads at most 1,500 words of instructions.
+- **Small.** Four commands plus help, one file per story, no required config, and one run loads at most 1,500 words of instructions.
 
 ## Install
 
@@ -22,7 +22,7 @@ Pick **one** method. Installing both gives you the skill twice.
 
 ```bash
 # Pin a release so later changes cannot reach you unreviewed (recommended)
-npx skills add thitinan147/scrum-spec#v0.4.0
+npx skills add thitinan147/scrum-spec#v0.5.0
 
 # Or follow the default branch
 npx skills add thitinan147/scrum-spec
@@ -34,7 +34,7 @@ Add `-g` to install for all your projects instead of the current one.
 
 ```text
 # Pinned to a release (recommended)
-/plugin marketplace add thitinan147/scrum-spec#v0.4.0
+/plugin marketplace add thitinan147/scrum-spec#v0.5.0
 /plugin install scrum-spec@scrum-spec
 ```
 
@@ -69,14 +69,14 @@ The [guide](docs/guide.md) covers the principles, the file layout, the checker a
 
 | | Status |
 |---|---|
-| Claude Code on macOS | v0.1 tested with the plugin from a local path; v0.3 not tested end to end yet |
+| Claude Code on macOS | v0.1 tested with the plugin from a local path; v0.5 not tested end to end yet |
 | Claude Code on Linux | Expected to work, not tested yet |
 | Codex, Cursor and other Agent Skills clients | Expected to work, not tested yet. The human-only rule relies on `agents/openai.yaml` (Codex) and the description prefix (others) |
 | Windows | Not tested. Use WSL |
 
 ## Security
 
-The skill reads your repos and writes Markdown into the project. `check.py` reads files only, runs no commands and makes no network calls. See [SECURITY.md](SECURITY.md).
+The skill reads your repos and writes Markdown into the project. `check.py` reads files only, runs no commands and makes no network calls. `board.py` writes `board.html`, and that page loads Google Fonts when opened. See [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
