@@ -5,7 +5,7 @@ license: MIT
 compatibility: Claude Code, Codex, Cursor and other Agent Skills clients. Needs git and Python 3.10+ (standard library only). poppler is optional, for large PDFs.
 metadata:
   author: Thitinan
-  version: "0.4.0"
+  version: "0.5.0"
   short-description: Draft Scrum specs from the code; the AI proposes, people decide
 argument-hint: "<help | split | ac | handoff | board> [<work>] [text or path of a PDF or image]"
 allowed-tools: Bash(python3 -I ${CLAUDE_SKILL_DIR}/scripts/check.py *) Bash(python3 -I ${CLAUDE_SKILL_DIR}/scripts/board.py *) Bash(git rev-parse *) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git blame *) Bash(git config user.name)

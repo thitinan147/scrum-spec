@@ -7,12 +7,14 @@ ERROR, exit 1:
   - the first line is not the <!-- scrum-spec --> marker
   - a table row has a different number of cells than its header
   - an approval or a decision without a person and a date, or given by an AI
-  - any text cites a D that does not exist
+  - any text cites a D that does not exist, including "(incl. D<n>)" and a warning
+    mark before D<n> (a capitalized name such as "Room D1" is not a citation)
   - a path in Source does not exist in the git root or a code_roots path
     (mark a file to create with "(new)")
 
 Reported, exit 0: approval status, open and blocking questions, assumptions waiting
-for the asked role, answers not yet recorded as decisions, AC and EC with no test step.
+for the asked role, answers not yet recorded as decisions, AC and EC with no test step,
+vague words in AC and EC.
 A ## Tasks section from scrum-spec 0.2 is kept as it is; its paths and AC are not checked.
 
 Read-only, standard library only, Python 3.10+.
@@ -24,6 +26,10 @@ import re
 import sys
 from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from specdoc import parse, questions_from
+
 DOC_NAMES = ("spec.md", "map.md")
 MARKER = "<!-- scrum-spec"
 # "AI" only in upper case, because "Ai" is a real nickname
@@ -31,9 +37,11 @@ AI = re.compile(r"\bAI\b|\b(?i:claude|chatgpt|gpt|copilot|gemini|codex|assistant
 APPROVED = re.compile(r"^✅\s+(.+?)\s+·\s+\d{4}-\d{2}-\d{2}\b")
 DECISION = re.compile(r"^- \*\*D(\d+)\*\*\s+(.*)$")
 DECIDED_BY = re.compile(r"·\s*([^·]+?)\s*·\s*\d{4}-\d{2}-\d{2}(?:\s*\([^()]*\))?\s*$")
-D_REF = re.compile(r"(?<!\S )\bD(\d+)\b")
+D_REF = re.compile(r"\bD(\d+)\b")
+NAMED_D = re.compile(r"[A-Z][A-Za-z]* $")
 OTHER_SPEC = re.compile(r"\bper \S+ D\d+")  # "per rb-12 D3:" cites another spec's decision
 AC_ID = re.compile(r"\b(?:AC|EC)\d+\b")
+VAGUE_WORDS = ("fast", "nice", "user-friendly", "เร็ว", "สวย", "ง่าย")
 CODE = re.compile(r"`([^`]+)`(\s*\(new\))?")
 LINE_SUFFIX = re.compile(r"(:\d+(-\d+)?|#L\d+(-L?\d+)?)$")
 
@@ -42,38 +50,24 @@ def is_ai(name: str) -> bool:
     return bool(AI.search(name))
 
 
-def cells(line: str) -> list[str]:
-    body = line.strip()[1:-1] if line.strip().endswith("|") else line.strip()[1:]
-    return [c.strip() for c in re.split(r"(?<!\\)\|", body)]
-
-
-def is_separator(line: str) -> bool:
-    return bool(re.fullmatch(r"\|[\s:|-]+\|?", line.strip())) and "-" in line
-
-
-def parse(lines: list[str]):
-    """Return {section: [(line_no, text)]} and tables as (section, header, [(line_no, cells)])."""
-    sections: dict[str, list[tuple[int, str]]] = {}
-    tables = []
-    section, fence = "", False
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        if line.lstrip().startswith("```"):
-            fence = not fence
-        elif not fence and line.startswith("## "):
-            section = line[3:].strip()
-        elif not fence and line.lstrip().startswith("|") and i + 1 < len(lines) and is_separator(lines[i + 1]):
-            header, rows, i = cells(line), [], i + 2
-            while i < len(lines) and lines[i].lstrip().startswith("|"):
-                rows.append((i + 1, cells(lines[i])))
-                i += 1
-            tables.append((section, header, rows))
+def cited_decisions(text: str) -> list[str]:
+    refs = []
+    for match in D_REF.finditer(text):
+        if NAMED_D.search(text[:match.start()]):
             continue
-        if not fence:
-            sections.setdefault(section, []).append((i + 1, line))
-        i += 1
-    return sections, tables
+        refs.append(match.group(1))
+    return refs
+
+
+def vague_hits(text: str) -> list[str]:
+    found = []
+    for word in VAGUE_WORDS:
+        if word.isascii():
+            if re.search(rf"(?<!\w){re.escape(word)}(?!\w)", text, re.IGNORECASE):
+                found.append(word)
+        elif word in text:
+            found.append(word)
+    return found
 
 
 def roots_for(doc: Path) -> list[Path] | None:
@@ -131,12 +125,12 @@ def check(doc: Path) -> tuple[list[str], list[str]]:
             errors.append(f"line {n}: D{found.group(1)} must be decided by a person, not an AI")
     for section, items in sections.items():
         for n, line in items:
-            for ref in D_REF.findall(OTHER_SPEC.sub("", line)):
+            for ref in cited_decisions(OTHER_SPEC.sub("", line)):
                 if ref not in defined_d:
                     errors.append(f"line {n}: D{ref} is not in Decisions")
     for _, _, rows in tables:
         for n, row in rows:
-            for ref in D_REF.findall(OTHER_SPEC.sub("", " ".join(row))):
+            for ref in cited_decisions(OTHER_SPEC.sub("", " ".join(row))):
                 if ref not in defined_d:
                     errors.append(f"line {n}: D{ref} is not in Decisions")
 
@@ -145,6 +139,20 @@ def check(doc: Path) -> tuple[list[str], list[str]]:
         tested = {m for n, l in sections["Test steps"] if l.startswith("### ") for m in AC_ID.findall(l)}
         missing = [a for a in ac_ids if a not in tested]
         notes.append("AC/EC with no test step: " + (", ".join(missing) if missing else "none"))
+
+    vague = []
+    for section, _, rows in tables:
+        if section != "Acceptance Criteria":
+            continue
+        for _, row in rows:
+            if not row or not AC_ID.fullmatch(row[0]):
+                continue
+            for word in dict.fromkeys(word for cell in row[1:] for word in vague_hits(cell)):
+                item = f"{row[0]} '{word}'"
+                if item not in vague:
+                    vague.append(item)
+    if vague:
+        notes.append("vague words in AC/EC: " + ", ".join(vague))
 
     roots = roots_for(doc.resolve())
     if roots is None:
@@ -160,24 +168,11 @@ def check(doc: Path) -> tuple[list[str], list[str]]:
                 if not any((root / path).exists() for root in roots):
                     errors.append(f"line {n}: `{token}` not found (add (new) if it will be created)")
 
-    open_q, blocking, unrecorded, assumed = [], [], [], []
-    for s, header, rows in tables:
-        if s != "Questions" or "Answer" not in header:
-            continue
-        a, b = header.index("Answer"), header.index("Blocks") if "Blocks" in header else None
-        ask = header.index("Ask") if "Ask" in header else None
-        for _, row in rows:
-            answer = row[a] if a < len(row) else ""
-            if answer in ("", "–", "-"):
-                open_q.append(row[0])
-                blocks = row[b] if b is not None and b < len(row) else ""
-                if blocks.lower() != "later":
-                    who = row[ask] if ask is not None and ask < len(row) else "?"
-                    blocking.append(f"{row[0]} ({blocks} · {who})")
-            elif answer.startswith("⚠"):
-                assumed.append(f"{row[0]} ({row[ask] if ask is not None and ask < len(row) else '?'})")
-            elif not answer.startswith("✅"):
-                unrecorded.append(row[0])
+    qs = questions_from(tables)
+    open_q = [q["id"] for q in qs if q["open"]]
+    blocking = [f"{q['id']} ({q['blocks']} · {q['ask']})" for q in qs if q["blocking"]]
+    assumed = [f"{q['id']} ({q['ask']})" for q in qs if q["assumed"]]
+    unrecorded = [q["id"] for q in qs if q["unrecorded"]]
     notes.append(f"questions open: {len(open_q)}" + (f" · blocking: {', '.join(blocking)}" if blocking else ""))
     if assumed:
         notes.append(f"assumptions waiting for the asked role to confirm: {', '.join(assumed)}")

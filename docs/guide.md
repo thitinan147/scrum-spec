@@ -54,8 +54,8 @@ roles: PO, BE, UX, QA
 python3 -I <skill_dir>/scripts/check.py scrum-spec/
 ```
 
-- **Exit 1:** missing first-line marker, a broken table row, an approval or decision without a person and date or given by an AI, a reference to a D that does not exist, a path in Source that does not exist (add `(new)` for files to create)
-- **Reported:** approval status, open and blocking questions, answers not yet recorded, AC/EC with no test step
+- **Exit 1:** missing first-line marker, a broken table row, an approval or decision without a person and date or given by an AI, a reference to a D that does not exist (including `(incl. D<n>)` and a warning mark before `D<n>`), a path in Source that does not exist (add `(new)` for files to create)
+- **Reported:** approval status, open and blocking questions, answers not yet recorded, AC/EC with no test step, vague words in AC and EC. A note does not fail the check. Approval still informs; it does not block.
 
 ## Visualise specs as a FigJam board
 
@@ -63,7 +63,7 @@ python3 -I <skill_dir>/scripts/check.py scrum-spec/
 python3 -I <skill_dir>/scripts/board.py scrum-spec/ --open
 ```
 
-Renders a standalone `board.html` with two-finger trackpad panning, pinch-to-zoom, and role-based view filters (PO, Dev, QA) with complete specs readable directly on the canvas without opening markdown files.
+Renders a standalone `board.html` with two-finger trackpad panning, pinch-to-zoom, and role-based view filters (PO, Dev, QA) with complete specs readable directly on the canvas without opening markdown files. A question is marked blocking on the board when `check.py` would report it as blocking. Each story card includes a mermaid state diagram transcribed from its AC rows (one transition per row; rows are not merged). Opening the file loads Google Fonts; see [SECURITY.md](../SECURITY.md).
 
 ## Measure whether it helps
 

@@ -7,6 +7,7 @@ Please report suspected vulnerabilities privately through GitHub: **Security tab
 ## What the skill does on your machine
 
 - **`scripts/check.py`** reads Markdown files in the folders you pass it and prints a report. It never writes or deletes files, runs no subprocess, and makes no network calls. It uses only the Python standard library.
+- **`scripts/board.py`** reads the Markdown you pass it and writes `board.html` (or the path given with `--output`). It does not modify the Markdown. With `--open` it opens that file in the default browser. `board.py` itself makes no network calls. The HTML loads [Google Fonts](https://fonts.googleapis.com/) from `fonts.googleapis.com` and `fonts.gstatic.com` each time someone opens it. It uses only the Python standard library.
 - **The agent, following the skill**, reads the repos listed in `code_roots`, writes Markdown under `scrum-spec/` (or `docs_root` in the config), and runs:
   - `git rev-parse`, `git status`, `git log`, `git diff`, `git blame` and `git config user.name` to find the project root, what people edited, and who answered or approved
   - `pdftotext` and `pdftoppm` on a PDF the user gave, when it is too large to read directly

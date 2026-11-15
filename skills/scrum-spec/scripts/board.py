@@ -21,52 +21,46 @@ import webbrowser
 from datetime import datetime, timezone
 from pathlib import Path
 
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from specdoc import parse, questions_from, section_lines
+
 MARKER = "<!-- scrum-spec"
 
 
-def cells(line: str) -> list[str]:
-    body = line.strip()[1:-1] if line.strip().endswith("|") else line.strip()[1:]
-    return [c.strip() for c in re.split(r"(?<!\\)\|", body)]
+def mermaid_label(text: str) -> str:
+    text = " ".join(text.split())
+    return text.replace("\\", "").replace('"', "'").replace("#", " ").replace("-->", "→")
 
 
-def is_separator(line: str) -> bool:
-    return bool(re.fullmatch(r"\|[\s:|-]+\|?", line.strip())) and "-" in line
+def mermaid_state(acs: list[dict[str, str]]) -> str:
+    """One transition per AC/EC row. Given and Then stay separate states; rows are not merged."""
+    if not acs:
+        return ""
+    lines = ["stateDiagram-v2", "    direction LR"]
+    seen: dict[str, int] = {}
+    for ac in acs:
+        code = re.sub(r"[^A-Za-z0-9]", "", ac.get("code", "")) or "AC"
+        count = seen.get(code, 0)
+        seen[code] = count + 1
+        ident = code if count == 0 else f"{code}_{count}"
+        given = mermaid_label(ac.get("given", "")) or " "
+        when = mermaid_label(ac.get("when", "")) or " "
+        then_ = mermaid_label(ac.get("then", "")) or " "
+        lines.append(f'    state "{given}" as {ident}_given')
+        lines.append(f'    state "{then_}" as {ident}_then')
+        lines.append(f"    {ident}_given --> {ident}_then: {when}")
+    return "\n".join(lines)
 
 
-def parse_sections(text: str) -> tuple[dict[str, list[str]], list[tuple[str, list[str], list[list[str]]]]]:
-    """Parse markdown text into {heading: lines} and [(heading, header, rows)]."""
-    lines = text.splitlines()
-    sections: dict[str, list[str]] = {}
-    tables: list[tuple[str, list[str], list[list[str]]]] = []
-    current_sec = ""
-    i = 0
-    in_fence = False
-
-    while i < len(lines):
-        line = lines[i]
-        if line.lstrip().startswith("```"):
-            in_fence = not in_fence
-        elif not in_fence and line.startswith("## "):
-            current_sec = line[3:].strip()
-            sections.setdefault(current_sec, [])
-        elif not in_fence and line.startswith("# "):
-            current_sec = "_title"
-            sections.setdefault(current_sec, []).append(line[2:].strip())
-        elif not in_fence and line.lstrip().startswith("|") and i + 1 < len(lines) and is_separator(lines[i + 1]):
-            header = cells(line)
-            rows: list[list[str]] = []
-            i += 2
-            while i < len(lines) and lines[i].lstrip().startswith("|"):
-                rows.append(cells(lines[i]))
-                i += 1
-            tables.append((current_sec, header, rows))
-            continue
-        else:
-            if not in_fence:
-                sections.setdefault(current_sec, []).append(line)
-        i += 1
-
-    return sections, tables
+def state_flow_html(acs: list[dict[str, str]]) -> str:
+    diagram = mermaid_state(acs)
+    if not diagram:
+        return ""
+    return (
+        '<div class="spec-block"><div class="spec-block-title">State flow</div>'
+        f'<pre class="state-flow">{html.escape(diagram)}</pre></div>'
+    )
 
 
 class StorySpec:
@@ -81,7 +75,7 @@ class StorySpec:
         self.rules: list[str] = []
         self.approve = "❌ waiting for PO"
         self.acs: list[dict[str, str]] = []
-        self.questions: list[dict[str, str]] = []
+        self.questions: list[dict] = []
         self.decisions: list[str] = []
         self.test_accounts = ""
         self.test_data = ""
@@ -99,31 +93,24 @@ class StorySpec:
 
         slug = path.parent.name
         spec = cls(slug, path)
-        sections, tables = parse_sections(text)
+        sections, tables = parse(text.splitlines())
 
-        # Title
-        if "_title" in sections and sections["_title"]:
-            spec.slug = sections["_title"][0].strip()
+        for line in section_lines(sections, ""):
+            if line.startswith("# "):
+                spec.slug = line[2:].strip()
+                break
 
-        # Story section
-        for line in sections.get("Story", []):
-            line_str = line.strip()
-            if line_str.startswith("- **Ticket:**"):
-                spec.ticket = line_str.split(":", 1)[1].strip()
-            elif line_str.startswith("- **Story:**"):
-                spec.story_text = line_str.split(":", 1)[1].strip()
-            elif line_str.startswith("- **Source:**"):
-                spec.source = line_str.split(":", 1)[1].strip()
-            elif line_str.startswith("  - ") and "in scope" in "".join(sections.get("Story", [])).lower():
-                # rough sub-bullet check
-                pass
-
-        # Parse Scope lines
         in_in_scope = False
         in_out_scope = False
-        for line in sections.get("Story", []):
+        for line in section_lines(sections, "Story"):
             s = line.strip()
-            if s.startswith("- **In scope:**"):
+            if s.startswith("- **Ticket:**"):
+                spec.ticket = s.split(":", 1)[1].strip()
+            elif s.startswith("- **Story:**"):
+                spec.story_text = s.split(":", 1)[1].strip()
+            elif s.startswith("- **Source:**"):
+                spec.source = s.split(":", 1)[1].strip()
+            elif s.startswith("- **In scope:**"):
                 in_in_scope, in_out_scope = True, False
             elif s.startswith("- **Out of scope:**"):
                 in_in_scope, in_out_scope = False, True
@@ -134,52 +121,31 @@ class StorySpec:
             elif in_out_scope and s.startswith("- "):
                 spec.out_scope.append(s[2:].strip())
 
-        # Rules
-        for line in sections.get("Rules", []):
+        for line in section_lines(sections, "Rules"):
             s = line.strip()
             if s.startswith("- **") or (s.startswith("- ") and not s.startswith("- (none")):
                 spec.rules.append(s[2:].strip())
 
         # Acceptance Criteria
-        for line in sections.get("Acceptance Criteria", []):
+        for line in section_lines(sections, "Acceptance Criteria"):
             s = line.strip()
             if s.startswith("**approve:**"):
-                spec.approve = s.split(":", 1)[1].strip()
+                spec.approve = s.split("**approve:**", 1)[1].strip()
 
-        for sec_name, header, rows in tables:
+        for sec_name, _header, rows in tables:
             if sec_name == "Acceptance Criteria":
-                h_lower = [h.lower() for h in header]
-                for row in rows:
+                for _, row in rows:
                     if len(row) >= 4:
-                        code = row[0]
-                        given = row[1]
-                        when = row[2]
-                        then = row[3]
-                        spec.acs.append({"code": code, "given": given, "when": when, "then": then})
-            elif sec_name == "Questions":
-                for row in rows:
-                    if len(row) >= 4:
-                        q_id = row[0]
-                        question = row[1]
-                        ask = row[2]
-                        blocks = row[3] if len(row) > 3 else ""
-                        answer = row[4] if len(row) > 4 else ""
-                        spec.questions.append({
-                            "id": q_id,
-                            "question": question,
-                            "ask": ask,
-                            "blocks": blocks,
-                            "answer": answer,
-                        })
+                        spec.acs.append({"code": row[0], "given": row[1], "when": row[2], "then": row[3]})
+        spec.questions = questions_from(tables)
 
-        # Decisions
-        for line in sections.get("Decisions", []):
+        for line in section_lines(sections, "Decisions"):
             s = line.strip()
             if s.startswith("- **D") or (s.startswith("- ") and "·" in s):
                 spec.decisions.append(s[2:].strip())
 
         # Test steps
-        test_sec = sections.get("Test steps", [])
+        test_sec = section_lines(sections, "Test steps")
         current_test_group = ""
         current_steps: list[str] = []
         for line in test_sec:
@@ -216,7 +182,7 @@ class StoryMap:
         self.steps: list[tuple[str, str, str]] = []  # [(step_num, title, actor_source)]
         self.stories_map: dict[str, dict[str, str]] = {}  # {slug: {steps, can, size}}
         self.not_now: list[str] = []
-        self.questions: list[dict[str, str]] = []
+        self.questions: list[dict] = []
         self.decisions: list[str] = []
 
     @classmethod
@@ -226,22 +192,19 @@ class StoryMap:
             return None
 
         flow = path.parent.name
-        sections, tables = parse_sections(text)
+        sections, tables = parse(text.splitlines())
 
-        if "_title" in sections and sections["_title"]:
-            title_line = sections["_title"][0]
-            if "·" in title_line:
-                flow = title_line.split("·", 1)[1].strip()
+        for line in section_lines(sections, ""):
+            if line.startswith("# ") and "·" in line:
+                flow = line[2:].split("·", 1)[1].strip()
 
         smap = cls(flow, path)
 
-        # approve
-        for line in sections.get("", []) + sections.get("_title", []):
+        for line in section_lines(sections, ""):
             if "**approve:**" in line:
                 smap.approve = line.split("**approve:**", 1)[1].strip()
 
-        # Steps
-        for line in sections.get("Steps", []):
+        for line in section_lines(sections, "Steps"):
             s = line.strip()
             m = re.match(r"^(\d+)\.\s+(.*?)(?:\s+[—-]\s+(.*))?$", s)
             if m:
@@ -251,34 +214,21 @@ class StoryMap:
                 smap.steps.append((step_no, title, meta))
 
         # Stories table
-        for sec_name, header, rows in tables:
+        for sec_name, _header, rows in tables:
             if sec_name == "Stories":
-                for row in rows:
+                for _, row in rows:
                     if len(row) >= 4:
                         slug = row[0].replace("`", "").strip()
-                        steps = row[1].strip()
-                        can = row[2].strip()
-                        size = row[3].strip()
-                        smap.stories_map[slug] = {"steps": steps, "can": can, "size": size}
-            elif sec_name == "Questions":
-                for row in rows:
-                    if len(row) >= 4:
-                        smap.questions.append({
-                            "id": row[0],
-                            "question": row[1],
-                            "ask": row[2],
-                            "blocks": row[3] if len(row) > 3 else "",
-                            "answer": row[4] if len(row) > 4 else "",
-                        })
+                        smap.stories_map[slug] = {"steps": row[1].strip(), "can": row[2].strip(), "size": row[3].strip()}
+        smap.questions = questions_from(tables)
 
-        # Not now
-        for line in sections.get("Not now", []):
+        for line in section_lines(sections, "Not now"):
             s = line.strip()
             if s.startswith("- ") and not s.startswith("- (none"):
                 smap.not_now.append(s[2:].strip())
 
         # Decisions
-        for line in sections.get("Decisions", []):
+        for line in section_lines(sections, "Decisions"):
             s = line.strip()
             if s.startswith("- **D") or (s.startswith("- ") and "·" in s):
                 smap.decisions.append(s[2:].strip())
@@ -376,7 +326,7 @@ def render_html(maps: list[StoryMap], specs: list[StorySpec], title: str = "Scru
         stamp_text = html.escape(sp.approve)
 
         # Status badge
-        blocking_q = [q for q in sp.questions if q.get("blocks") in {"dev", "stories", "AC"} and not q.get("answer")]
+        blocking_q = [q for q in sp.questions if q.get("blocking")]
         if blocking_q:
             sub_status = f'<span style="font-size: 11px; color: #dc2626; font-weight: 700;">⚠️ {len(blocking_q)} BLOCKER QUESTION</span>'
         elif is_approved:
@@ -460,6 +410,7 @@ def render_html(maps: list[StoryMap], specs: list[StorySpec], title: str = "Scru
               </table>
             </div>
             """
+            acs_block += state_flow_html(sp.acs)
 
         # QA Handoff HTML
         qa_block = ""
@@ -542,7 +493,7 @@ def render_html(maps: list[StoryMap], specs: list[StorySpec], title: str = "Scru
     # Column 3: Questions, Decisions, Not Now
     q_stickies = []
     for q in all_questions:
-        is_blocker = q.get("blocks") in {"dev", "stories", "AC"} and not q.get("answer")
+        is_blocker = bool(q.get("blocking"))
         tag_html = '<span class="tag-blocker">🚫 BLOCKS ' + html.escape(str(q.get("blocks", "")).upper()) + '</span>' if is_blocker else f'<span class="tag-later">{html.escape(q.get("blocks", "later"))}</span>'
         ans_html = f'<div style="font-size: 11px; margin-top: 4px; color: #15803d;"><strong>Answer:</strong> {html.escape(q["answer"])}</div>' if q.get("answer") else ""
 
@@ -1074,6 +1025,18 @@ def render_html(maps: list[StoryMap], specs: list[StorySpec], title: str = "Scru
 
     .ac-table tr:last-child td {{
       border-bottom: none;
+    }}
+
+    .state-flow {{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #334155;
     }}
 
     .badge-ac {{

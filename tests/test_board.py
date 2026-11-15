@@ -13,6 +13,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 BOARD = REPO / "skills" / "scrum-spec" / "scripts" / "board.py"
+CHECK = REPO / "skills" / "scrum-spec" / "scripts" / "check.py"
 FIXTURES = REPO / "evals" / "files"
 
 
@@ -46,6 +47,11 @@ class BoardTests(unittest.TestCase):
 
             # Check Blocker question
             self.assertIn("BLOCKS DEV", html)
+            self.assertIn("1 BLOCKER QUESTION", html)
+            self.assertEqual(html.count("READY FOR SPRINT"), 1)
+            self.assertIn("✅ Alex · 2026-11-03 (incl. D1)", html)
+            self.assertIn("stateDiagram-v2", html)
+            self.assertIn("AC1_given --&gt; AC1_then: they look at the", html)
 
     def test_generate_board_with_map(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -146,3 +152,53 @@ class BoardTests(unittest.TestCase):
             # Check story & correlated map step
             self.assertIn("Steps 1–2", html)
             self.assertIn("rb-12-book-room", html)
+
+    def test_board_and_check_agree_on_blocking(self) -> None:
+        spec = (
+            "<!-- scrum-spec -->\n"
+            "# rb-99-old-blocks\n\n"
+            "## Acceptance Criteria\n\n"
+            "**approve:** ✅ Alex · 2026-11-15\n\n"
+            "| # | Given | When | Then |\n"
+            "|---|---|---|---|\n"
+            "| AC1 | The form is open | they look | the fields are empty |\n\n"
+            "## Questions\n\n"
+            "| # | Question | Ask | Blocks | Answer |\n"
+            "|---|---|---|---|---|\n"
+            "| Q1 | Which API creates the booking? | BE | tasks | – |\n"
+            "| Q2 | Rename the button? | PO | ac | - |\n\n"
+            "## Decisions\n\n"
+            "- **D1** Keep the form · Alex · 2026-11-15\n"
+        )
+        ready = spec.replace("tasks", "later").replace("| ac |", "| later |").replace("| – |", "| |").replace("| - |", "| |")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            blocking_spec = root / "blocking" / "spec.md"
+            blocking_spec.parent.mkdir()
+            blocking_spec.write_text(spec, encoding="utf-8")
+            ready_spec = root / "ready" / "spec.md"
+            ready_spec.parent.mkdir()
+            ready_spec.write_text(ready, encoding="utf-8")
+
+            def both(path: Path) -> tuple[str, str]:
+                checked = subprocess.run(
+                    [sys.executable, "-I", str(CHECK), str(path)],
+                    capture_output=True, text=True, encoding="utf-8",
+                )
+                out_file = path.parent / "board.html"
+                board = subprocess.run(
+                    [sys.executable, "-I", str(BOARD), str(path.parent), "-o", str(out_file)],
+                    capture_output=True, text=True, encoding="utf-8",
+                )
+                self.assertEqual(checked.returncode, 0, checked.stdout + checked.stderr)
+                self.assertEqual(board.returncode, 0, board.stderr)
+                return checked.stdout, out_file.read_text(encoding="utf-8")
+
+            blocking_out, blocking_html = both(blocking_spec)
+            ready_out, ready_html = both(ready_spec)
+
+        self.assertIn("blocking: Q1 (tasks · BE), Q2 (ac · PO)", blocking_out)
+        self.assertNotIn("READY FOR SPRINT", blocking_html)
+        self.assertIn("2 BLOCKER QUESTION", blocking_html)
+        self.assertNotIn("blocking", ready_out)
+        self.assertIn("READY FOR SPRINT", ready_html)

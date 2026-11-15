@@ -122,5 +122,22 @@
       "Keeps '**approve:** ✅ Alex · 2026-11-03' and appends D2 inside the (incl. …) note, because the change follows a decision",
       "Does not rewrite AC the team already has; adds a test step for the new EC, so check.py still reports 'AC/EC with no test step: none'"
     ]
+  },
+  {
+    "skills": [
+      "scrum-spec"
+    ],
+    "query": "/scrum-spec board room-booking",
+    "files": [
+      "evals/files/room-booking/scrum-spec/rb-12-book-room/spec.md",
+      "evals/files/room-booking/scrum-spec/rb-13-cancel-booking/spec.md"
+    ],
+    "expected_behavior": [
+      "Runs scripts/board.py on the folder that holds the specs and writes board.html there",
+      "Does not edit the spec.md files",
+      "Shows rb-12-book-room as ready for the sprint: it is approved and its only question blocks later",
+      "Shows rb-13-cancel-booking with a blocker: Q2 blocks dev and has no answer",
+      "Includes a state flow transcribed from each story's Given, When and Then rows, one transition per row"
+    ]
   }
 ]

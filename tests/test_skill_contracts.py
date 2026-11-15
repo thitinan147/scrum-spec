@@ -132,12 +132,24 @@ class SkillContractTests(unittest.TestCase):
             self.assertIn(section, skill_text())
 
     def test_no_thai_outside_allowed_places(self) -> None:
-        allowed = {SKILL / "references" / "input.md", REPO / "evals" / "evals.json"}
+        allowed = {SKILL / "references" / "input.md", REPO / "evals" / "evals.json", SKILL / "scripts" / "check.py"}
         for path in REPO.rglob("*"):
             if ".git" in path.parts or not path.is_file() or path in allowed:
                 continue
             if path.suffix in {".md", ".py", ".json", ".yaml", ".yml", ".txt"}:
                 self.assertIsNone(THAI.search(path.read_text(encoding="utf-8")), str(path.relative_to(REPO)))
+
+    def test_v0_5_docs_name_the_board_and_the_commands(self) -> None:
+        readme = (REPO / "README.md").read_text(encoding="utf-8")
+        security = (REPO / "SECURITY.md").read_text(encoding="utf-8")
+        self.assertNotIn("Three commands", readme)
+        self.assertNotIn("v0.3", readme)
+        self.assertIn("v0.5.0", readme)
+        self.assertIn("board.py", security)
+        self.assertIn("Google Fonts", security)
+        self.assertIn("fonts.googleapis.com", security)
+        evals = json.loads((REPO / "evals" / "evals.json").read_text(encoding="utf-8"))
+        self.assertTrue(any(item["query"].startswith("/scrum-spec board") for item in evals))
 
     def test_readme_links_and_paths_exist(self) -> None:
         readme = (REPO / "README.md").read_text(encoding="utf-8")
